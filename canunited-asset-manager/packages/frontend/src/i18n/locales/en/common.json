@@ -74,13 +74,20 @@
     "editSite": "Edit Site",
     "deleteSite": "Delete Site",
     "siteName": "Site Name",
+    "siteCode": "Site Code",
     "address": "Address",
+    "street": "Street Address",
     "city": "City",
     "country": "Country",
+    "postalCode": "Postal Code",
     "timezone": "Timezone",
     "assetCount": "Asset Count",
     "contactPerson": "Contact Person",
-    "noSites": "No sites found"
+    "noSites": "No sites found",
+    "monitored": "sites monitored",
+    "getStarted": "Get started by adding your first site",
+    "siteAdded": "Site added successfully",
+    "requiredFields": "Site name and code are required"
   },
   "sensors": {
     "title": "Sensors",

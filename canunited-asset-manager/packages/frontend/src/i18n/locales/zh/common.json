@@ -74,13 +74,20 @@
     "editSite": "编辑站点",
     "deleteSite": "删除站点",
     "siteName": "站点名称",
+    "siteCode": "站点代码",
     "address": "地址",
+    "street": "街道地址",
     "city": "城市",
     "country": "国家",
+    "postalCode": "邮政编码",
     "timezone": "时区",
     "assetCount": "资产数量",
     "contactPerson": "联系人",
-    "noSites": "未找到站点"
+    "noSites": "未找到站点",
+    "monitored": "个监控站点",
+    "getStarted": "添加您的第一个站点以开始使用",
+    "siteAdded": "站点添加成功",
+    "requiredFields": "站点名称和代码为必填项"
   },
   "sensors": {
     "title": "传感器",

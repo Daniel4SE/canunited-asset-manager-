@@ -263,6 +263,15 @@ function NotificationsTab() {
   );
 }
 
+interface ApiKey {
+  id: string;
+  name: string;
+  key: string;
+  lastUsed: string;
+  created: string;
+  permissions: string[];
+}
+
 function SecurityTab() {
   const { t } = useTranslation();
   const [mfaEnabled, setMfaEnabled] = useState(false);
@@ -272,6 +281,16 @@ function SecurityTab() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [mfaSecret, setMfaSecret] = useState<{ qrCodeUrl: string; secret: string; backupCodes: string[] } | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
+
+  // API Keys state
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([
+    { id: '1', name: 'Production API Key', key: 'sk_live_canunited_prod_a1b2c3d4e5f6', lastUsed: '2 hours ago', created: 'Jan 15, 2026', permissions: ['read:assets', 'read:sensors'] },
+    { id: '2', name: 'Development Key', key: 'sk_live_canunited_dev_x9y8z7w6v5u4', lastUsed: '5 days ago', created: 'Dec 10, 2025', permissions: ['read:assets', 'write:assets'] },
+  ]);
+  const [newKeyName, setNewKeyName] = useState('');
+  const [newKeyExpiry, setNewKeyExpiry] = useState('90');
+  const [newKeyPermissions, setNewKeyPermissions] = useState<string[]>(['read:assets', 'read:sensors']);
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
 
   // Mock MFA setup
   const handleSetupMfa = async () => {
@@ -417,8 +436,23 @@ function SecurityTab() {
           </button>
         </div>
         <div className="space-y-2">
-          <ApiKeyRow name="Production API Key" lastUsed="2 hours ago" created="Jan 15, 2026" />
-          <ApiKeyRow name="Development Key" lastUsed="5 days ago" created="Dec 10, 2025" />
+          {apiKeys.length === 0 ? (
+            <p className="text-sm text-slate-500 text-center py-4">{t('security.noApiKeys') || 'No API keys yet'}</p>
+          ) : (
+            apiKeys.map((apiKey) => (
+              <ApiKeyRow
+                key={apiKey.id}
+                name={apiKey.name}
+                keyValue={apiKey.key}
+                lastUsed={apiKey.lastUsed}
+                created={apiKey.created}
+                onDelete={() => {
+                  setApiKeys(apiKeys.filter((k) => k.id !== apiKey.id));
+                  toast.success(t('security.apiKeyDeleted') || 'API key deleted');
+                }}
+              />
+            ))
+          )}
         </div>
       </div>
 
@@ -611,59 +645,174 @@ function SecurityTab() {
           <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold text-white mb-4">{t('security.createApiKey')}</h2>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-slate-400 mb-2">{t('security.keyName')}</label>
-                <input type="text" className="input w-full" placeholder="My API Key" />
-              </div>
-
-              <div>
-                <label className="block text-sm text-slate-400 mb-2">{t('security.keyExpiry')}</label>
-                <select className="input w-full">
-                  <option value="30">{t('security.days30')}</option>
-                  <option value="90">{t('security.days90')}</option>
-                  <option value="365">{t('security.days365')}</option>
-                  <option value="never">{t('security.neverExpires')}</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-slate-400 mb-2">{t('security.permissions')}</label>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-sm text-slate-300">
-                    <input type="checkbox" defaultChecked className="rounded" />
-                    {t('security.readAssets')}
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-slate-300">
-                    <input type="checkbox" className="rounded" />
-                    {t('security.writeAssets')}
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-slate-300">
-                    <input type="checkbox" defaultChecked className="rounded" />
-                    {t('security.readSensors')}
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-slate-300">
-                    <input type="checkbox" className="rounded" />
-                    {t('security.writeMaintenance')}
-                  </label>
+            {newlyCreatedKey ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                  <p className="text-sm text-emerald-400 mb-2">{t('security.keyCreatedSuccess') || 'Your API key has been created. Copy it now - you won\'t be able to see it again!'}</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 p-2 bg-slate-800 rounded text-sm font-mono text-primary-400 break-all">
+                      {newlyCreatedKey}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(newlyCreatedKey);
+                        toast.success(t('security.keyCopied') || 'Key copied to clipboard');
+                      }}
+                      className="btn btn-outline text-xs px-2 py-1"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => {
+                      setShowApiKeyModal(false);
+                      setNewlyCreatedKey(null);
+                      setNewKeyName('');
+                    }}
+                    className="btn btn-primary"
+                  >
+                    Done
+                  </button>
                 </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">{t('security.keyName')}</label>
+                    <input
+                      type="text"
+                      className="input w-full"
+                      placeholder="My API Key"
+                      value={newKeyName}
+                      onChange={(e) => setNewKeyName(e.target.value)}
+                    />
+                  </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => setShowApiKeyModal(false)} className="btn btn-outline">
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => {
-                  toast.success(t('security.apiKeyCreated'));
-                  setShowApiKeyModal(false);
-                }}
-                className="btn btn-primary"
-              >
-                {t('security.generate')}
-              </button>
-            </div>
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">{t('security.keyExpiry')}</label>
+                    <select
+                      className="input w-full"
+                      value={newKeyExpiry}
+                      onChange={(e) => setNewKeyExpiry(e.target.value)}
+                    >
+                      <option value="30">{t('security.days30')}</option>
+                      <option value="90">{t('security.days90')}</option>
+                      <option value="365">{t('security.days365')}</option>
+                      <option value="never">{t('security.neverExpires')}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">{t('security.permissions')}</label>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={newKeyPermissions.includes('read:assets')}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewKeyPermissions([...newKeyPermissions, 'read:assets']);
+                            } else {
+                              setNewKeyPermissions(newKeyPermissions.filter((p) => p !== 'read:assets'));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        {t('security.readAssets')}
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={newKeyPermissions.includes('write:assets')}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewKeyPermissions([...newKeyPermissions, 'write:assets']);
+                            } else {
+                              setNewKeyPermissions(newKeyPermissions.filter((p) => p !== 'write:assets'));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        {t('security.writeAssets')}
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={newKeyPermissions.includes('read:sensors')}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewKeyPermissions([...newKeyPermissions, 'read:sensors']);
+                            } else {
+                              setNewKeyPermissions(newKeyPermissions.filter((p) => p !== 'read:sensors'));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        {t('security.readSensors')}
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={newKeyPermissions.includes('write:maintenance')}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewKeyPermissions([...newKeyPermissions, 'write:maintenance']);
+                            } else {
+                              setNewKeyPermissions(newKeyPermissions.filter((p) => p !== 'write:maintenance'));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        {t('security.writeMaintenance')}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowApiKeyModal(false);
+                      setNewKeyName('');
+                      setNewKeyPermissions(['read:assets', 'read:sensors']);
+                    }}
+                    className="btn btn-outline"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!newKeyName.trim()) {
+                        toast.error(t('security.keyNameRequired') || 'Please enter a key name');
+                        return;
+                      }
+                      // Generate a random key
+                      const randomPart = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                      const generatedKey = `sk_live_canunited_${randomPart}`;
+
+                      // Add to list
+                      const newKey: ApiKey = {
+                        id: Date.now().toString(),
+                        name: newKeyName,
+                        key: generatedKey,
+                        lastUsed: 'Never',
+                        created: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                        permissions: newKeyPermissions,
+                      };
+                      setApiKeys([...apiKeys, newKey]);
+                      setNewlyCreatedKey(generatedKey);
+                      toast.success(t('security.apiKeyCreated'));
+                    }}
+                    className="btn btn-primary"
+                  >
+                    {t('security.generate')}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -699,16 +848,15 @@ function SsoProviderCard({ provider, name, connected }: { provider: string; name
   );
 }
 
-function ApiKeyRow({ name, lastUsed, created }: { name: string; lastUsed: string; created: string }) {
+function ApiKeyRow({ name, keyValue, lastUsed, created, onDelete }: { name: string; keyValue: string; lastUsed: string; created: string; onDelete: () => void }) {
   const [showKey, setShowKey] = useState(false);
-  const maskedKey = 'sk_live_••••••••••••••••••••••••••••••';
-  const realKey = 'sk_live_canunited_a1b2c3d4e5f6g7h8i9j0';
+  const maskedKey = keyValue.substring(0, 12) + '••••••••••••••••••••';
 
   return (
     <div className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
       <div className="flex-1">
         <p className="text-sm font-medium text-white">{name}</p>
-        <p className="text-xs text-slate-500 font-mono">{showKey ? realKey : maskedKey}</p>
+        <p className="text-xs text-slate-500 font-mono">{showKey ? keyValue : maskedKey}</p>
         <p className="text-xs text-slate-500 mt-1">
           Last used: {lastUsed} • Created: {created}
         </p>
@@ -720,7 +868,10 @@ function ApiKeyRow({ name, lastUsed, created }: { name: string; lastUsed: string
         >
           {showKey ? 'Hide' : 'Show'}
         </button>
-        <button className="p-2 text-red-400 hover:bg-red-500/10 rounded transition-colors">
+        <button
+          onClick={onDelete}
+          className="p-2 text-red-400 hover:bg-red-500/10 rounded transition-colors"
+        >
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
