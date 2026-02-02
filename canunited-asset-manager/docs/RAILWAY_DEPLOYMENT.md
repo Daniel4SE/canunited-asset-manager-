@@ -33,7 +33,8 @@
 #### 2.3 后端服务
 1. 点击 **"+ New"** → **"GitHub Repo"**
 2. 选择你的仓库
-3. 设置 Root Directory: `packages/backend`
+3. 设置 Root Directory: `canunited-asset-manager/packages/backend`
+   > **注意**: 因为仓库结构是嵌套的，所以需要包含 `canunited-asset-manager/` 前缀
 4. 添加环境变量:
 
 ```env
