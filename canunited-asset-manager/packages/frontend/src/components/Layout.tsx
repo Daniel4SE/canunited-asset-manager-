@@ -69,17 +69,9 @@ export default function Layout() {
     navigate('/login');
   };
 
-  // Filter navigation based on permissions
-  // In demo mode, show all navigation items
-  const isDemoMode = !import.meta.env.VITE_API_URL || import.meta.env.VITE_DEMO_MODE === 'true';
-  const filteredNavigation = navigation.filter((item) => {
-    // Show all items in demo mode
-    if (isDemoMode) return true;
-    // Otherwise check permissions
-    if (item.permission && !hasPermission(item.permission)) return false;
-    if (item.roles && !hasRole(item.roles)) return false;
-    return true;
-  });
+  // Show all navigation items (permission filtering disabled for now)
+  // TODO: Re-enable permission filtering when backend auth is fully working
+  const filteredNavigation = navigation;
 
   return (
     <div className="min-h-screen bg-slate-950 bg-circuit-pattern">
@@ -148,22 +140,21 @@ export default function Layout() {
 
           {/* User section */}
           <div className="p-3 border-t border-slate-700/50">
-            {(isDemoMode || hasPermission('settings:view')) && (
-              <NavLink
-                to="/settings"
-                className={({ isActive }) =>
-                  clsx(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-2',
-                    isActive
-                      ? 'bg-primary-500/10 text-primary-400'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-                  )
-                }
-              >
-                <Settings className="w-5 h-5" />
-                {sidebarOpen && <span className="font-medium">{t('nav.settings')}</span>}
-              </NavLink>
-            )}
+            {/* Settings link */}
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                clsx(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-2',
+                  isActive
+                    ? 'bg-primary-500/10 text-primary-400'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                )
+              }
+            >
+              <Settings className="w-5 h-5" />
+              {sidebarOpen && <span className="font-medium">{t('nav.settings')}</span>}
+            </NavLink>
 
             <LanguageSwitcher collapsed={!sidebarOpen} />
 
