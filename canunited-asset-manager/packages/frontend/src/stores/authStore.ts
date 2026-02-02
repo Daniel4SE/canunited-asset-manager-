@@ -373,9 +373,15 @@ export const useAuthStore = create<AuthState>()(
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
         user: state.user,
+        isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
+          // If we have a token and user, consider authenticated
+          if (state.accessToken && state.user) {
+            state.isAuthenticated = true;
+          }
+          // Then verify with backend
           state.checkAuth();
         }
       },
