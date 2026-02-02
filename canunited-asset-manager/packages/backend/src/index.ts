@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import crypto from 'crypto';
+import QRCode from 'qrcode';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 
@@ -29,6 +31,89 @@ const mockUser = {
   role: 'admin',
   organizationId: 'org-001',
 };
+
+// ============= MFA Implementation =============
+const BASE32_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+// In-memory MFA storage (demo mode - resets on restart)
+const mfaStore = new Map<string, {
+  enabled: boolean;
+  secret: string | null;
+  backupCodes: string[];
+  pendingSetup?: { secret: string; backupCodes: string[]; expiresAt: number };
+}>();
+
+// Initialize demo users with MFA disabled
+mfaStore.set('admin@canunited.com', { enabled: false, secret: null, backupCodes: [] });
+mfaStore.set('admin@canunited.demo', { enabled: false, secret: null, backupCodes: [] });
+
+function base32Encode(buffer: Buffer): string {
+  let bits = 0, value = 0, output = '';
+  for (let i = 0; i < buffer.length; i++) {
+    value = (value << 8) | buffer[i];
+    bits += 8;
+    while (bits >= 5) {
+      output += BASE32_CHARS[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) output += BASE32_CHARS[(value << (5 - bits)) & 31];
+  return output;
+}
+
+function base32Decode(encoded: string): Buffer {
+  const cleanEncoded = encoded.replace(/=+$/, '').toUpperCase();
+  let bits = 0, value = 0;
+  const output: number[] = [];
+  for (let i = 0; i < cleanEncoded.length; i++) {
+    const index = BASE32_CHARS.indexOf(cleanEncoded[i]);
+    if (index === -1) continue;
+    value = (value << 5) | index;
+    bits += 5;
+    if (bits >= 8) {
+      output.push((value >>> (bits - 8)) & 255);
+      bits -= 8;
+    }
+  }
+  return Buffer.from(output);
+}
+
+function generateTOTP(secret: string, counter: number): string {
+  const secretBuffer = base32Decode(secret);
+  const counterBuffer = Buffer.alloc(8);
+  for (let i = 7; i >= 0; i--) {
+    counterBuffer[i] = counter & 0xff;
+    counter = Math.floor(counter / 256);
+  }
+  const hmac = crypto.createHmac('sha1', secretBuffer);
+  hmac.update(counterBuffer);
+  const hash = hmac.digest();
+  const offset = hash[hash.length - 1] & 0xf;
+  const code = ((hash[offset] & 0x7f) << 24) | ((hash[offset + 1] & 0xff) << 16) |
+               ((hash[offset + 2] & 0xff) << 8) | (hash[offset + 3] & 0xff);
+  return String(code % 1000000).padStart(6, '0');
+}
+
+function verifyTOTP(secret: string, token: string): boolean {
+  const time = Math.floor(Date.now() / 1000 / 30);
+  for (let i = -1; i <= 1; i++) {
+    if (generateTOTP(secret, time + i) === token) return true;
+  }
+  return false;
+}
+
+function generateSecret(): string {
+  return base32Encode(crypto.randomBytes(20));
+}
+
+function generateBackupCodes(count: number = 10): string[] {
+  const codes: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+    codes.push(`${code.slice(0, 4)}-${code.slice(4)}`);
+  }
+  return codes;
+}
 
 const mockDashboard = {
   summary: {
@@ -274,6 +359,131 @@ app.get('/api/v1/auth/me', (req, res) => {
 
 app.post('/api/v1/auth/logout', (req, res) => {
   res.json({ success: true });
+});
+
+// ============= MFA Endpoints =============
+
+// Setup MFA - Generate QR code and backup codes
+app.post('/api/v1/auth/mfa/setup', async (req, res) => {
+  try {
+    const email = 'admin@canunited.com'; // In real app, get from JWT
+    const secret = generateSecret();
+    const backupCodes = generateBackupCodes(10);
+
+    // Store pending setup
+    const userMfa = mfaStore.get(email) || { enabled: false, secret: null, backupCodes: [] };
+    userMfa.pendingSetup = { secret, backupCodes, expiresAt: Date.now() + 10 * 60 * 1000 };
+    mfaStore.set(email, userMfa);
+
+    // Generate QR code
+    const issuer = encodeURIComponent('CANUnited');
+    const account = encodeURIComponent(email);
+    const otpauthUrl = `otpauth://totp/${issuer}:${account}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
+    const qrCodeUrl = await QRCode.toDataURL(otpauthUrl, { width: 256, margin: 2 });
+
+    res.json({
+      success: true,
+      data: {
+        qrCodeUrl,
+        secret, // Show secret for manual entry
+        backupCodes,
+        message: 'Scan QR code with your authenticator app, then verify with a code',
+      },
+    });
+  } catch (error) {
+    console.error('MFA setup error:', error);
+    res.status(500).json({ success: false, error: { message: 'Failed to setup MFA' } });
+  }
+});
+
+// Confirm MFA setup
+app.post('/api/v1/auth/mfa/confirm', (req, res) => {
+  const { code } = req.body;
+  const email = 'admin@canunited.com';
+
+  const userMfa = mfaStore.get(email);
+  if (!userMfa?.pendingSetup) {
+    return res.status(400).json({ success: false, error: { message: 'No pending MFA setup' } });
+  }
+
+  if (Date.now() > userMfa.pendingSetup.expiresAt) {
+    userMfa.pendingSetup = undefined;
+    return res.status(400).json({ success: false, error: { message: 'MFA setup expired' } });
+  }
+
+  if (!verifyTOTP(userMfa.pendingSetup.secret, code)) {
+    return res.status(400).json({ success: false, error: { message: 'Invalid verification code' } });
+  }
+
+  // Enable MFA
+  userMfa.enabled = true;
+  userMfa.secret = userMfa.pendingSetup.secret;
+  userMfa.backupCodes = userMfa.pendingSetup.backupCodes;
+  userMfa.pendingSetup = undefined;
+  mfaStore.set(email, userMfa);
+
+  res.json({ success: true, data: { message: 'MFA enabled successfully' } });
+});
+
+// Verify MFA code (during login)
+app.post('/api/v1/auth/mfa/verify', (req, res) => {
+  const { code, email } = req.body;
+  const userMfa = mfaStore.get(email || 'admin@canunited.com');
+
+  if (!userMfa?.enabled || !userMfa.secret) {
+    return res.status(400).json({ success: false, error: { message: 'MFA not enabled' } });
+  }
+
+  if (verifyTOTP(userMfa.secret, code)) {
+    return res.json({ success: true, data: { verified: true } });
+  }
+
+  // Check backup codes
+  const normalizedCode = code.replace(/-/g, '').toUpperCase();
+  const backupIndex = userMfa.backupCodes.findIndex(
+    bc => bc.replace(/-/g, '').toUpperCase() === normalizedCode
+  );
+  if (backupIndex !== -1) {
+    userMfa.backupCodes.splice(backupIndex, 1);
+    return res.json({ success: true, data: { verified: true, usedBackupCode: true } });
+  }
+
+  res.status(400).json({ success: false, error: { message: 'Invalid MFA code' } });
+});
+
+// Disable MFA
+app.post('/api/v1/auth/mfa/disable', (req, res) => {
+  const { code } = req.body;
+  const email = 'admin@canunited.com';
+  const userMfa = mfaStore.get(email);
+
+  if (!userMfa?.enabled || !userMfa.secret) {
+    return res.status(400).json({ success: false, error: { message: 'MFA not enabled' } });
+  }
+
+  if (!verifyTOTP(userMfa.secret, code)) {
+    return res.status(400).json({ success: false, error: { message: 'Invalid MFA code' } });
+  }
+
+  userMfa.enabled = false;
+  userMfa.secret = null;
+  userMfa.backupCodes = [];
+  mfaStore.set(email, userMfa);
+
+  res.json({ success: true, data: { message: 'MFA disabled successfully' } });
+});
+
+// Get MFA status
+app.get('/api/v1/auth/mfa/status', (req, res) => {
+  const email = 'admin@canunited.com';
+  const userMfa = mfaStore.get(email);
+  res.json({
+    success: true,
+    data: {
+      enabled: userMfa?.enabled || false,
+      backupCodesRemaining: userMfa?.backupCodes?.length || 0,
+    },
+  });
 });
 
 // ============= Dashboard =============
