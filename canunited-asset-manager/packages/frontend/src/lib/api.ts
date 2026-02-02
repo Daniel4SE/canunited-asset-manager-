@@ -19,8 +19,9 @@ api.interceptors.request.use(
     const stored = localStorage.getItem('canunited-auth');
     if (stored) {
       const { state } = JSON.parse(stored);
-      if (state?.token) {
-        config.headers.Authorization = `Bearer ${state.token}`;
+      // authStore persists 'accessToken', not 'token'
+      if (state?.accessToken) {
+        config.headers.Authorization = `Bearer ${state.accessToken}`;
       }
     }
     return config;
