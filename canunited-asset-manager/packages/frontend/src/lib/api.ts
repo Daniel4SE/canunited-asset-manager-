@@ -121,50 +121,56 @@ export const mockApi = {
   get: async (endpoint: string) => {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
+    // Helper: check if endpoint starts with a path (ignoring query params)
+    const matchesPath = (path: string) => {
+      const basePath = endpoint.split('?')[0];
+      return basePath === path || endpoint.startsWith(path + '?') || endpoint.startsWith(path + '/');
+    };
+
     // Return mock data based on endpoint
-    if (endpoint === endpoints.dashboard) {
+    if (matchesPath(endpoints.dashboard)) {
       return { data: { data: mockData.mockDashboard } };
     }
-    if (endpoint === endpoints.sites) {
+    if (matchesPath(endpoints.sites)) {
       return { data: { data: mockData.mockSites } };
     }
-    if (endpoint.startsWith('/assets') && !endpoint.includes('/')) {
+    if (endpoint.split('?')[0] === endpoints.assets) {
       return { data: { data: mockData.mockAssets, meta: { page: 1, perPage: 12, total: mockData.mockAssets.length, totalPages: 1 } } };
     }
-    if (endpoint.match(/\/assets\/[^/]+$/)) {
-      const id = endpoint.split('/').pop();
+    if (endpoint.match(/\/assets\/[^/?]+(\?|$)/)) {
+      const id = endpoint.split('/assets/')[1]?.split(/[/?]/)[0];
       const asset = mockData.mockAssets.find(a => a.id === id);
       return { data: { data: asset || mockData.mockAssets[0] } };
     }
     if (endpoint.includes('/health-history')) {
       return { data: { data: generateMockHealthHistory() } };
     }
-    if (endpoint === endpoints.alerts || endpoint.startsWith('/alerts?')) {
+    if (matchesPath(endpoints.alerts)) {
       return { data: { data: mockData.mockAlerts, meta: { page: 1, perPage: 50, total: mockData.mockAlerts.length, totalPages: 1 } } };
     }
-    if (endpoint === endpoints.alertsSummary) {
+    if (matchesPath(endpoints.alertsSummary)) {
       return { data: { data: mockData.mockAlertsSummary } };
     }
-    if (endpoint === endpoints.sensors) {
+    if (matchesPath(endpoints.sensors)) {
       return { data: { data: mockData.mockSensors } };
     }
-    if (endpoint === endpoints.maintenance || endpoint.startsWith('/maintenance?')) {
+    if (matchesPath(endpoints.maintenance)) {
       return { data: { data: mockData.mockMaintenance, meta: { page: 1, perPage: 20, total: mockData.mockMaintenance.length, totalPages: 1 } } };
     }
-    if (endpoint === endpoints.maintenanceUpcoming) {
+    if (matchesPath(endpoints.maintenanceUpcoming)) {
       return { data: { data: mockData.mockMaintenanceUpcoming } };
     }
-    if (endpoint === endpoints.vendorComparison) {
+    if (matchesPath(endpoints.vendorComparison)) {
       return { data: { data: mockData.mockVendorComparison } };
     }
-    if (endpoint === endpoints.failureRisk) {
+    if (matchesPath(endpoints.failureRisk)) {
       return { data: { data: mockData.mockFailureRisk } };
     }
-    if (endpoint === endpoints.healthTrends) {
+    if (matchesPath(endpoints.healthTrends)) {
       return { data: { data: { dataPoints: generateMockTrendData() } } };
     }
-    if (endpoint === endpoints.lifecycleAnalysis) {
+    if (matchesPath(endpoints.lifecycleAnalysis)) {
       return { data: { data: generateMockLifecycleData() } };
     }
     if (endpoint.includes('/topology/site/')) {
@@ -173,32 +179,36 @@ export const mockApi = {
     if (endpoint.includes('/predictions/') && endpoint.includes('/rul')) {
       return { data: { data: generateMockRulPrediction() } };
     }
-    if (endpoint === '/predictions/fleet') {
+    if (matchesPath('/predictions/fleet')) {
       return { data: { data: generateMockFleetPredictions() } };
     }
-    if (endpoint === '/predictions/risk-distribution') {
+    if (matchesPath('/predictions/risk-distribution')) {
       return { data: { data: generateMockRiskDistribution() } };
     }
-    if (endpoint === '/reports/templates') {
+    if (matchesPath('/reports/templates')) {
       return { data: { data: mockData.mockReportTemplates } };
     }
-    if (endpoint === '/integrations/cmms') {
+    if (matchesPath('/integrations/cmms')) {
       return { data: { data: mockData.mockCmmsIntegrations } };
     }
-    if (endpoint === '/users' || endpoint === '/users/assignable') {
+    if (matchesPath('/users/assignable')) {
       return { data: { data: mockData.mockTeamMembers } };
     }
-    if (endpoint === '/users/me') {
+    if (matchesPath('/users/me')) {
       return { data: { data: mockData.mockCurrentUser } };
     }
-    if (endpoint.startsWith('/audit/entity/')) {
+    if (matchesPath('/users')) {
+      return { data: { data: mockData.mockTeamMembers } };
+    }
+    if (endpoint.includes('/audit/entity/')) {
       return { data: { data: mockData.mockAuditLogs, meta: { total: mockData.mockAuditLogs.length, page: 1, perPage: 20, totalPages: 1 } } };
     }
-    if (endpoint === '/audit') {
+    if (matchesPath('/audit')) {
       return { data: { data: mockData.mockAuditLogs, meta: { total: mockData.mockAuditLogs.length, page: 1, perPage: 50, totalPages: 1 } } };
     }
 
     // Default empty response
+    console.warn('[MockAPI] No mock data for endpoint:', endpoint);
     return { data: { data: [] } };
   },
   
