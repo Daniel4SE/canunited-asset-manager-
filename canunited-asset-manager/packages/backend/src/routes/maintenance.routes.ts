@@ -83,18 +83,21 @@ maintenanceRoutes.get('/', async (req: Request, res: Response, next: NextFunctio
     );
 
     const result = await query(
-      `SELECT m.*, 
+      `SELECT m.id, m.site_id, m.asset_id, m.title, m.description,
+              m.task_type, m.priority, m.status, m.due_date, m.assigned_to,
+              m.scheduled_start, m.scheduled_end, m.oem_service_required,
+              m.created_at, m.updated_at,
               s.name as site_name,
               a.name as asset_name,
               a.asset_tag,
               a.vendor as asset_vendor,
-              u.name as assigned_to_name
+              CONCAT(u.first_name, ' ', u.last_name) as assigned_to_name
        FROM maintenance_tasks m
        LEFT JOIN sites s ON m.site_id = s.id
        LEFT JOIN assets a ON m.asset_id = a.id
        LEFT JOIN users u ON m.assigned_to = u.id
        WHERE ${whereConditions.join(' AND ')}
-       ORDER BY 
+       ORDER BY
          CASE m.priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END,
          m.due_date ASC
        LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
@@ -116,18 +119,11 @@ maintenanceRoutes.get('/', async (req: Request, res: Response, next: NextFunctio
         taskType: row.task_type,
         priority: row.priority,
         status: row.status,
-        scheduledDate: row.scheduled_date,
+        scheduledDate: row.scheduled_start,
         dueDate: row.due_date,
-        completedDate: row.completed_date,
         assignedTo: row.assigned_to,
         assignedToName: row.assigned_to_name,
-        assignedTeam: row.assigned_team,
         oemServiceRequired: row.oem_service_required,
-        oemVendor: row.oem_vendor,
-        workOrderId: row.work_order_id,
-        estimatedDurationHours: row.estimated_duration_hours,
-        actualDurationHours: row.actual_duration_hours,
-        checklist: row.checklist,
         notes: row.notes,
         createdAt: row.created_at,
         updatedAt: row.updated_at

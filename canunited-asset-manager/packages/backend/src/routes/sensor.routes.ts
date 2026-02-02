@@ -53,10 +53,9 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
       `SELECT s.id, s.site_id, s.name, s.sensor_type, s.vendor, s.model,
               s.serial_number, s.protocol, s.gateway_id, s.is_online,
               s.battery_level, s.signal_strength, s.last_reading_at, s.created_at,
-              s.asset_id, a.name as assigned_asset_name, g.name as gateway_name
+              s.asset_id, a.name as assigned_asset_name
        FROM sensors s
        LEFT JOIN assets a ON s.asset_id = a.id
-       LEFT JOIN gateways g ON s.gateway_id = g.id
        WHERE ${whereConditions.join(' AND ')}
        ORDER BY s.name`,
       params
