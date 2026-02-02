@@ -45,7 +45,7 @@ app.get('/health', async (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
+    version: '1.0.2-fix-routes',
     service: 'canunited-backend',
     mode: hasDatabase ? 'production' : 'demo',
     database: dbStatus,
@@ -70,7 +70,7 @@ app.use(morgan('combined'));
 app.get('/', (req, res) => {
   res.json({
     message: 'CANUnited Asset Manager API',
-    version: '1.0.0',
+    version: '1.0.2-fix-routes',
     mode: hasDatabase ? 'production' : 'demo',
     documentation: '/api/v1',
   });
