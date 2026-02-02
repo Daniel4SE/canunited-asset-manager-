@@ -1,16 +1,18 @@
 // Local type definitions (replaces @canunited/shared for standalone deployment)
 
-export enum UserRole {
-  ADMIN = 'administrator',
-  ANALYST = 'analyst',
-  TECHNICIAN = 'technician',
-  VIEWER = 'viewer',
-  ASSET_MANAGER = 'asset_manager',
-  FIELD_TECHNICIAN = 'field_technician',
-  RELIABILITY_ENGINEER = 'reliability_engineer',
-}
+// Use const object for reliable cross-module imports
+export const UserRole = {
+  ADMIN: 'administrator',
+  ANALYST: 'analyst',
+  TECHNICIAN: 'technician',
+  VIEWER: 'viewer',
+  ASSET_MANAGER: 'asset_manager',
+  FIELD_TECHNICIAN: 'field_technician',
+  RELIABILITY_ENGINEER: 'reliability_engineer',
+} as const;
 
-export type UserRoleType = `${UserRole}`;
+export type UserRole = typeof UserRole[keyof typeof UserRole];
+export type UserRoleType = UserRole;
 
 export type VendorType = 'schneider' | 'abb' | 'siemens' | 'ge' | 'eaton' | 'other';
 
