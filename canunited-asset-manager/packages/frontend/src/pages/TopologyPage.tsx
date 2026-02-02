@@ -271,7 +271,9 @@ export default function TopologyPage() {
       n6: { x: 500, y: 380 },  // Eaton Power Defense (bottom right)
     };
 
-    const nodes: Node[] = topologyData.nodes.map((node: any, index: number) => {
+    // Safely handle nodes array - support both 'label' and legacy 'name' field
+    const rawNodes = topologyData.nodes || [];
+    const nodes: Node[] = rawNodes.map((node: any, index: number) => {
       // Use predefined positions or calculate based on index
       const position = nodePositions[node.id] || {
         x: (index % 3) * 220 + 100,
@@ -283,17 +285,19 @@ export default function TopologyPage() {
         type: 'asset',
         position,
         data: {
-          label: node.label,
+          label: node.label || node.name || 'Unknown',
           type: node.type,
-          vendor: node.vendor,
-          healthScore: node.healthScore,
-          status: node.status,
-          assetTag: node.assetTag,
+          vendor: node.vendor || 'generic',
+          healthScore: node.healthScore || 0,
+          status: node.status || 'unknown',
+          assetTag: node.assetTag || node.id,
         },
       };
     });
 
-    const edges: Edge[] = topologyData.edges.map((edge: any) => ({
+    // Safely handle edges array - support both 'edges' and legacy 'connections' field
+    const rawEdges = topologyData.edges || topologyData.connections || [];
+    const edges: Edge[] = rawEdges.map((edge: any) => ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
