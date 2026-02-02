@@ -110,33 +110,43 @@ process.on('SIGTERM', async () => {
 
 // Start server
 async function start() {
-  try {
-    // Connect to database if available
-    if (hasDatabase) {
+  let dbConnected = false;
+  let redisConnected = false;
+
+  // Try to connect to database (don't fail if it doesn't work)
+  if (hasDatabase) {
+    try {
       await connectDatabase();
+      dbConnected = true;
       console.log('✅ Database connected');
+    } catch (error) {
+      console.error('⚠️ Database connection failed:', error);
+      console.log('⚠️ Server will start without database (health check will still work)');
     }
+  }
 
-    // Connect to Redis if available
-    if (hasRedis) {
+  // Try to connect to Redis (don't fail if it doesn't work)
+  if (hasRedis) {
+    try {
       await connectRedis();
+      redisConnected = true;
       console.log('✅ Redis connected');
+    } catch (error) {
+      console.error('⚠️ Redis connection failed:', error);
     }
+  }
 
-    server.listen(config.port, '0.0.0.0', () => {
-      console.log(`
+  server.listen(config.port, '0.0.0.0', () => {
+    console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║   🏭 CANUnited Asset Manager Backend                      ║
 ║   Server running on http://0.0.0.0:${config.port}                   ║
 ║   Environment: ${config.nodeEnv.padEnd(40)}║
-║   Mode: ${hasDatabase ? 'Production (PostgreSQL)' : 'Demo (in-memory)    '}              ║
+║   Database: ${dbConnected ? 'Connected ✓' : 'Not connected ✗'}                              ║
+║   Redis: ${redisConnected ? 'Connected ✓' : 'Not connected ✗'}                                 ║
 ╚═══════════════════════════════════════════════════════════╝
-      `);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
+    `);
+  });
 }
 
 start();
