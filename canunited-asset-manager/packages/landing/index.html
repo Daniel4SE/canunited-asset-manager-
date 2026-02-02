@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CANUnited - Multi-Vendor Electrical Asset Intelligence Platform</title>
+    <meta name="description" content="CANUnited Asset Manager - Unified management for Schneider, ABB, Siemens electrical equipment. AI-powered health monitoring and predictive maintenance.">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </div>
+                <span>CANUnited</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="#features">Features</a>
+                <a href="#vendors">Vendors</a>
+                <a href="#analytics">Analytics</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="#demo" class="btn btn-ghost">Demo</a>
+                <a href="#contact" class="btn btn-primary">Start Free Trial</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg">
+            <div class="hero-gradient"></div>
+            <div class="hero-grid"></div>
+            <div class="floating-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+            </div>
+        </div>
+        <div class="container hero-content">
+            <div class="hero-text" data-aos="fade-up">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    Next-Gen Asset Management Platform
+                </div>
+                <h1>
+                    <span class="gradient-text">Intelligently Manage</span>
+                    All Your Electrical Assets
+                </h1>
+                <p class="hero-subtitle">
+                    Break down vendor silos. Unified management for Schneider, ABB, Siemens, and more.
+                    AI-powered health monitoring and predictive maintenance for more reliable, efficient power systems.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#demo" class="btn btn-primary btn-lg">
+                        <span>Start Free Trial</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <a href="#video" class="btn btn-outline btn-lg">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <span>Watch Demo</span>
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="500">0</span>+
+                        <span class="stat-label">Enterprise Clients</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="50000">0</span>+
+                        <span class="stat-label">Managed Assets</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="30">0</span>%
+                        <span class="stat-label">Less Downtime</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual" data-aos="fade-left" data-aos-delay="200">
+                <div class="dashboard-preview">
+                    <div class="preview-header">
+                        <div class="preview-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="preview-title">CANUnited Dashboard</span>
+                    </div>
+                    <div class="preview-content">
+                        <div class="preview-sidebar">
+                            <div class="sidebar-item active"></div>
+                            <div class="sidebar-item"></div>
+                            <div class="sidebar-item"></div>
+                            <div class="sidebar-item"></div>
+                            <div class="sidebar-item"></div>
+                        </div>
+                        <div class="preview-main">
+                            <div class="preview-cards">
+                                <div class="preview-card card-green">
+                                    <div class="card-icon">⚡</div>
+                                    <div class="card-value">92</div>
+                                    <div class="card-label">Health Score</div>
+                                </div>
+                                <div class="preview-card card-blue">
+                                    <div class="card-icon">🏭</div>
+                                    <div class="card-value">156</div>
+                                    <div class="card-label">Online Assets</div>
+                                </div>
+                                <div class="preview-card card-orange">
+                                    <div class="card-icon">🔔</div>
+                                    <div class="card-value">3</div>
+                                    <div class="card-label">Active Alerts</div>
+                                </div>
+                            </div>
+                            <div class="preview-chart">
+                                <svg viewBox="0 0 300 100" class="chart-line">
+                                    <path d="M0,80 Q50,70 100,50 T200,40 T300,20" fill="none" stroke="url(#chartGradient)" stroke-width="3"/>
+                                    <defs>
+                                        <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" style="stop-color:#10b981"/>
+                                            <stop offset="100%" style="stop-color:#3b82f6"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-scroll">
+            <span>Scroll down to explore</span>
+            <div class="scroll-indicator">
+                <div class="scroll-dot"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trusted By Section -->
+    <section class="trusted-by">
+        <div class="container">
+            <p class="trusted-label" data-aos="fade-up">Trusted by industry leaders worldwide</p>
+            <div class="trusted-logos" data-aos="fade-up" data-aos-delay="100">
+                <div class="logo-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/Schneider_Electric_2007.svg" alt="Schneider Electric">
+                </div>
+                <div class="logo-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/ABB_logo.svg" alt="ABB">
+                </div>
+                <div class="logo-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Siemens-logo.svg" alt="Siemens">
+                </div>
+                <div class="logo-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/75/Eaton_Corporation_logo.svg" alt="Eaton">
+                </div>
+                <div class="logo-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/1/16/Bosch-logo.svg" alt="Bosch">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <span class="section-tag">Core Features</span>
+                <h2>Why Choose <span class="gradient-text">CANUnited</span></h2>
+                <p>Your one-stop solution for all multi-vendor electrical asset management challenges</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="0">
+                    <div class="feature-icon icon-green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h3>Unified Health Dashboard</h3>
+                    <p>Real-time monitoring of all asset statuses. 0-100 health scoring system provides instant visibility across your entire fleet.</p>
+                    <a href="#" class="feature-link">
+                        Learn more <span>→</span>
+                    </a>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-icon icon-blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <h3>Predictive Maintenance</h3>
+                    <p>AI-powered failure prediction. Early risk identification, optimal maintenance window recommendations, and spare parts forecasting.</p>
+                    <a href="#" class="feature-link">
+                        Learn more <span>→</span>
+                    </a>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-icon icon-purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M3 9h18"/>
+                            <path d="M9 21V9"/>
+                        </svg>
+                    </div>
+                    <h3>Electrical Topology Visualization</h3>
+                    <p>Interactive single-line diagrams, auto-generated topology maps, critical path analysis, and fault impact visualization.</p>
+                    <a href="#" class="feature-link">
+                        Learn more <span>→</span>
+                    </a>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-icon icon-orange">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <path d="M3.27 6.96L12 12.01l8.73-5.05"/>
+                            <path d="M12 22.08V12"/>
+                        </svg>
+                    </div>
+                    <h3>Multi-Vendor Compatible</h3>
+                    <p>Unified protocol adapters for Schneider, ABB, Siemens, Eaton, and more. Eliminate information silos once and for all.</p>
+                    <a href="#" class="feature-link">
+                        Learn more <span>→</span>
+                    </a>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-icon icon-pink">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                    </div>
+                    <h3>QR Code Quick Access</h3>
+                    <p>Instant asset details via QR scan. On-site maintenance info in seconds. Increase inventory efficiency by 80%.</p>
+                    <a href="#" class="feature-link">
+                        Learn more <span>→</span>
+                    </a>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-icon icon-cyan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 20V10"/>
+                            <path d="M12 20V4"/>
+                            <path d="M6 20v-6"/>
+                        </svg>
+                    </div>
+                    <h3>Cross-Vendor Analytics</h3>
+                    <p>Breakthrough vendor comparison capabilities. Reliability, maintenance costs, failure rates - data-driven decision making.</p>
+                    <a href="#" class="feature-link">
+                        Learn more <span>→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Vendors Section -->
+    <section class="vendors" id="vendors">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <span class="section-tag">Multi-Vendor Support</span>
+                <h2>One Platform, <span class="gradient-text">All Brands</span></h2>
+                <p>Seamless integration with industry-leading electrical equipment manufacturers</p>
+            </div>
+            
+            <div class="vendors-showcase">
+                <div class="vendor-card" data-aos="zoom-in" data-aos-delay="0">
+                    <div class="vendor-logo schneider">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="#3DCD58"/>
+                            <text x="50" y="55" text-anchor="middle" fill="white" font-size="14" font-weight="bold">SE</text>
+                        </svg>
+                    </div>
+                    <h4>Schneider Electric</h4>
+                    <ul class="vendor-devices">
+                        <li>Masterpact Circuit Breakers</li>
+                        <li>Prisma Switchboards</li>
+                        <li>PowerLogic Meters</li>
+                        <li>Trihal Transformers</li>
+                    </ul>
+                </div>
+                
+                <div class="vendor-card" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="vendor-logo abb">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="#FF000F"/>
+                            <text x="50" y="55" text-anchor="middle" fill="white" font-size="14" font-weight="bold">ABB</text>
+                        </svg>
+                    </div>
+                    <h4>ABB</h4>
+                    <ul class="vendor-devices">
+                        <li>UniGear Switchgear</li>
+                        <li>ACS880 VFD Drives</li>
+                        <li>REF615 Protection</li>
+                        <li>Emax Circuit Breakers</li>
+                    </ul>
+                </div>
+                
+                <div class="vendor-card" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="vendor-logo siemens">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="#009999"/>
+                            <text x="50" y="55" text-anchor="middle" fill="white" font-size="12" font-weight="bold">SIEMENS</text>
+                        </svg>
+                    </div>
+                    <h4>Siemens</h4>
+                    <ul class="vendor-devices">
+                        <li>SIPROTEC Protection</li>
+                        <li>SIVACON Switchboards</li>
+                        <li>SENTRON Breakers</li>
+                        <li>SINAMICS Drives</li>
+                    </ul>
+                </div>
+                
+                <div class="vendor-card" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="vendor-logo eaton">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="#005EB8"/>
+                            <text x="50" y="55" text-anchor="middle" fill="white" font-size="14" font-weight="bold">EATON</text>
+                        </svg>
+                    </div>
+                    <h4>Eaton</h4>
+                    <ul class="vendor-devices">
+                        <li>Magnum Circuit Breakers</li>
+                        <li>93PM UPS Systems</li>
+                        <li>xComfort Smart</li>
+                        <li>PowerXL VFD</li>
+                    </ul>
+                </div>
+                
+                <div class="vendor-card" data-aos="zoom-in" data-aos-delay="400">
+                    <div class="vendor-logo bosch">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="#E20015"/>
+                            <text x="50" y="55" text-anchor="middle" fill="white" font-size="12" font-weight="bold">BOSCH</text>
+                        </svg>
+                    </div>
+                    <h4>Bosch Rexroth</h4>
+                    <ul class="vendor-devices">
+                        <li>IndraDrive Servo</li>
+                        <li>ctrlX CORE Control</li>
+                        <li>IndraMotion Motion</li>
+                        <li>IoT Gateway</li>
+                    </ul>
+                </div>
+                
+                <div class="vendor-card vendor-generic" data-aos="zoom-in" data-aos-delay="500">
+                    <div class="vendor-logo generic">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="#6366F1"/>
+                            <text x="50" y="55" text-anchor="middle" fill="white" font-size="14" font-weight="bold">IoT</text>
+                        </svg>
+                    </div>
+                    <h4>Generic IoT</h4>
+                    <ul class="vendor-devices">
+                        <li>Modbus Devices</li>
+                        <li>OPC-UA Servers</li>
+                        <li>MQTT Sensors</li>
+                        <li>Custom Protocols</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analytics Section -->
+    <section class="analytics" id="analytics">
+        <div class="container">
+            <div class="analytics-content">
+                <div class="analytics-text" data-aos="fade-right">
+                    <span class="section-tag">Smart Analytics</span>
+                    <h2>Data-Driven <span class="gradient-text">Intelligent Decisions</span></h2>
+                    <p>CANUnited's AI analytics engine processes massive operational data to provide deep insights and smart recommendations</p>
+                    
+                    <div class="analytics-features">
+                        <div class="analytics-feature">
+                            <div class="feature-check">✓</div>
+                            <div>
+                                <h4>Unified Health Score (UHS)</h4>
+                                <p>Comprehensive 4-dimensional assessment: electrical, thermal, insulation, mechanical</p>
+                            </div>
+                        </div>
+                        <div class="analytics-feature">
+                            <div class="feature-check">✓</div>
+                            <div>
+                                <h4>Remaining Useful Life Prediction</h4>
+                                <p>Machine learning-based RUL prediction with high accuracy</p>
+                            </div>
+                        </div>
+                        <div class="analytics-feature">
+                            <div class="feature-check">✓</div>
+                            <div>
+                                <h4>Cross-Vendor Benchmarking</h4>
+                                <p>Multi-dimensional comparison: reliability, cost, efficiency</p>
+                            </div>
+                        </div>
+                        <div class="analytics-feature">
+                            <div class="feature-check">✓</div>
+                            <div>
+                                <h4>Automated Report Generation</h4>
+                                <p>One-click professional management reports in multiple formats</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analytics-visual" data-aos="fade-left">
+                    <div class="analytics-dashboard">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <span>Health Trend Analysis</span>
+                                <span class="badge badge-green">Live</span>
+                            </div>
+                            <div class="trend-chart">
+                                <svg viewBox="0 0 400 150">
+                                    <defs>
+                                        <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.3"/>
+                                            <stop offset="100%" style="stop-color:#10b981;stop-opacity:0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M0,100 Q50,80 100,70 T200,50 T300,40 T400,30 L400,150 L0,150 Z" fill="url(#areaGradient)"/>
+                                    <path d="M0,100 Q50,80 100,70 T200,50 T300,40 T400,30" fill="none" stroke="#10b981" stroke-width="3"/>
+                                    <circle cx="400" cy="30" r="6" fill="#10b981"/>
+                                </svg>
+                            </div>
+                            <div class="trend-stats">
+                                <div class="trend-stat">
+                                    <span class="trend-value">92.5</span>
+                                    <span class="trend-label">Current Score</span>
+                                </div>
+                                <div class="trend-stat">
+                                    <span class="trend-value trend-up">+3.2%</span>
+                                    <span class="trend-label">vs Last Month</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-grid">
+                            <div class="mini-card">
+                                <div class="mini-icon">⚡</div>
+                                <div class="mini-content">
+                                    <span class="mini-value">98.7%</span>
+                                    <span class="mini-label">Electrical Health</span>
+                                </div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mini-icon">🌡️</div>
+                                <div class="mini-content">
+                                    <span class="mini-value">94.2%</span>
+                                    <span class="mini-label">Thermal Health</span>
+                                </div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mini-icon">🛡️</div>
+                                <div class="mini-content">
+                                    <span class="mini-value">91.8%</span>
+                                    <span class="mini-label">Insulation Health</span>
+                                </div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mini-icon">⚙️</div>
+                                <div class="mini-content">
+                                    <span class="mini-value">89.5%</span>
+                                    <span class="mini-label">Mechanical Health</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="0">
+                    <div class="stat-icon">📉</div>
+                    <div class="stat-number" data-count="30">0</div>
+                    <div class="stat-suffix">%</div>
+                    <div class="stat-desc">Downtime Reduction</div>
+                </div>
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-number" data-count="25">0</div>
+                    <div class="stat-suffix">%</div>
+                    <div class="stat-desc">Maintenance Cost Savings</div>
+                </div>
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-number" data-count="20">0</div>
+                    <div class="stat-suffix">%</div>
+                    <div class="stat-desc">Extended Asset Lifespan</div>
+                </div>
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stat-icon">🚀</div>
+                    <div class="stat-number" data-count="80">0</div>
+                    <div class="stat-suffix">%</div>
+                    <div class="stat-desc">Inventory Efficiency Boost</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <span class="section-tag">Testimonials</span>
+                <h2>What Our <span class="gradient-text">Customers Say</span></h2>
+                <p>Hear from businesses that have transformed their asset management with CANUnited</p>
+            </div>
+            
+            <div class="testimonials-slider" data-aos="fade-up" data-aos-delay="100">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">"</div>
+                        <p>CANUnited completely transformed how we manage multi-vendor equipment. We used to log into 5 different systems - now one dashboard shows everything. The predictive maintenance feature alone helped us avoid two major outages.</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <span>JW</span>
+                        </div>
+                        <div class="author-info">
+                            <h4>James Wilson</h4>
+                            <p>Equipment Director, Automotive Manufacturing</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">"</div>
+                        <p>As a data center operations lead, power system reliability is my top priority. CANUnited's health scoring lets us catch issues before they become problems. Our maintenance costs dropped 28% - the ROI speaks for itself.</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <span>MK</span>
+                        </div>
+                        <div class="author-info">
+                            <h4>Michael Kim</h4>
+                            <p>Operations Director, Cloud Computing</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">"</div>
+                        <p>Our factory has ABB, Schneider, and Siemens equipment - information was completely siloed before. CANUnited's unified management gave us our first-ever cross-vendor performance comparison. Critical data for procurement decisions.</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <span>SR</span>
+                        </div>
+                        <div class="author-info">
+                            <h4>Sarah Rodriguez</h4>
+                            <p>Engineering Manager, Electronics Manufacturing</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <span class="section-tag">Pricing Plans</span>
+                <h2>Choose Your <span class="gradient-text">Plan</span></h2>
+                <p>Flexible pricing to meet the needs of businesses of all sizes</p>
+            </div>
+            
+            <div class="pricing-toggle" data-aos="fade-up">
+                <span class="toggle-label active">Monthly</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="pricingToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">Annual <span class="discount-badge">Save 20%</span></span>
+            </div>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card" data-aos="fade-up" data-aos-delay="0">
+                    <div class="pricing-header">
+                        <h3>Starter</h3>
+                        <p>Perfect for small businesses and startups</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="currency">$</span>
+                        <span class="amount monthly">299</span>
+                        <span class="amount yearly" style="display:none">239</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><span class="check">✓</span> Up to 50 assets</li>
+                        <li><span class="check">✓</span> 2 sites</li>
+                        <li><span class="check">✓</span> Basic health monitoring</li>
+                        <li><span class="check">✓</span> Email alerts</li>
+                        <li><span class="check">✓</span> 7×8 support</li>
+                        <li class="disabled"><span class="cross">×</span> Predictive maintenance</li>
+                        <li class="disabled"><span class="cross">×</span> API access</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline btn-block">Start Trial</a>
+                </div>
+                
+                <div class="pricing-card featured" data-aos="fade-up" data-aos-delay="100">
+                    <div class="featured-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3>Professional</h3>
+                        <p>Ideal for growing mid-size companies</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="currency">$</span>
+                        <span class="amount monthly">899</span>
+                        <span class="amount yearly" style="display:none">719</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><span class="check">✓</span> Up to 200 assets</li>
+                        <li><span class="check">✓</span> 10 sites</li>
+                        <li><span class="check">✓</span> Full health monitoring</li>
+                        <li><span class="check">✓</span> Multi-channel alerts</li>
+                        <li><span class="check">✓</span> 24/7 support</li>
+                        <li><span class="check">✓</span> Predictive maintenance</li>
+                        <li><span class="check">✓</span> API access</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-primary btn-block">Get Started</a>
+                </div>
+                
+                <div class="pricing-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="pricing-header">
+                        <h3>Enterprise</h3>
+                        <p>For large enterprises and corporations</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="custom-price">Custom Pricing</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><span class="check">✓</span> Unlimited assets</li>
+                        <li><span class="check">✓</span> Unlimited sites</li>
+                        <li><span class="check">✓</span> Advanced analytics</li>
+                        <li><span class="check">✓</span> On-premise deployment</li>
+                        <li><span class="check">✓</span> Dedicated account manager</li>
+                        <li><span class="check">✓</span> Custom development</li>
+                        <li><span class="check">✓</span> SLA guarantee</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline btn-block">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-bg">
+            <div class="cta-gradient"></div>
+            <div class="cta-pattern"></div>
+        </div>
+        <div class="container">
+            <div class="cta-content" data-aos="fade-up">
+                <h2>Ready to Transform Your Asset Management?</h2>
+                <p>Join 500+ enterprises on the journey to intelligent electrical asset management</p>
+                <div class="cta-buttons">
+                    <a href="#contact" class="btn btn-white btn-lg">
+                        Schedule Demo
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <a href="#demo" class="btn btn-ghost-white btn-lg">Free 14-Day Trial</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-info" data-aos="fade-right">
+                    <span class="section-tag">Contact Us</span>
+                    <h2>Let's Start a <span class="gradient-text">Conversation</span></h2>
+                    <p>Our expert team is ready to help you achieve digital transformation in asset management</p>
+                    
+                    <div class="contact-methods">
+                        <div class="contact-method">
+                            <div class="method-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Email Us</h4>
+                                <p>contact@canunited.com</p>
+                            </div>
+                        </div>
+                        <div class="contact-method">
+                            <div class="method-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Call Us</h4>
+                                <p>+1 (888) 888-8888</p>
+                            </div>
+                        </div>
+                        <div class="contact-method">
+                            <div class="method-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Visit Us</h4>
+                                <p>1000 Innovation Drive, Silicon Valley, CA 94025</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-form-wrapper" data-aos="fade-left">
+                    <form class="contact-form" id="contactForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" name="name" placeholder="Your name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Company</label>
+                                <input type="text" name="company" placeholder="Company name" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" placeholder="your@email.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" name="phone" placeholder="Your phone number">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Assets</label>
+                            <select name="deviceCount">
+                                <option value="">Select asset count</option>
+                                <option value="1-50">1-50 assets</option>
+                                <option value="51-200">51-200 assets</option>
+                                <option value="201-500">201-500 assets</option>
+                                <option value="500+">500+ assets</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Message</label>
+                            <textarea name="message" rows="4" placeholder="Tell us about your needs..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg btn-block">
+                            Submit Inquiry
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <div class="logo-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                            </svg>
+                        </div>
+                        <span>CANUnited</span>
+                    </a>
+                    <p>Multi-vendor electrical asset intelligence platform. Making your power systems more reliable and efficient.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Twitter">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="LinkedIn">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="GitHub">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#vendors">Vendors</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#">Changelog</a></li>
+                        <li><a href="#">Roadmap</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">Integration Guide</a></li>
+                        <li><a href="#">Case Studies</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press</a></li>
+                        <li><a href="#">Partners</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 CANUnited. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Settings</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

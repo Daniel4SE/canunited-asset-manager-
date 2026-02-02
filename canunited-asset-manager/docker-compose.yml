@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: canunited-db
+    environment:
+      POSTGRES_USER: canunited
+      POSTGRES_PASSWORD: canunited_secret
+      POSTGRES_DB: canunited_asset_manager
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./packages/backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U canunited -d canunited_asset_manager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - canunited-network
+
+  # Redis Cache & Session Store
+  redis:
+    image: redis:7-alpine
+    container_name: canunited-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - canunited-network
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    container_name: canunited-backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://canunited:canunited_secret@postgres:5432/canunited_asset_manager
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-canunited-jwt-secret-change-in-production-2024}
+      JWT_EXPIRES_IN: 15m
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      MFA_ISSUER: CANUnited Asset Manager
+      CORS_ORIGIN: http://localhost:3000
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - canunited-network
+
+  # Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:4000/api
+    container_name: canunited-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - canunited-network
+
+networks:
+  canunited-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

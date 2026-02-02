@@ -1,0 +1,32 @@
+{
+  "name": "canunited-asset-manager",
+  "version": "1.0.0",
+  "description": "Multi-vendor electrical asset intelligence platform",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm -w @canunited/backend run dev",
+    "dev:frontend": "npm -w @canunited/frontend run dev",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "build:shared": "npm -w @canunited/shared run build",
+    "build:backend": "npm -w @canunited/backend run build",
+    "build:frontend": "npm -w @canunited/frontend run build",
+    "start": "npm -w @canunited/backend run start",
+    "db:migrate": "npm -w @canunited/backend run db:migrate",
+    "db:seed": "npm -w @canunited/backend run db:seed",
+    "lint": "eslint packages --ext .ts,.tsx",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.55.0",
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
