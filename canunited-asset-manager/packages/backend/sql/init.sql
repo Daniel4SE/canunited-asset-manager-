@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ENUMS
 -- ==========================================
 
-CREATE TYPE user_role AS ENUM ('administrator', 'analyst', 'technician', 'viewer');
+CREATE TYPE user_role AS ENUM ('administrator', 'analyst', 'technician', 'viewer', 'asset_manager', 'field_technician', 'reliability_engineer');
 CREATE TYPE auth_provider AS ENUM ('local', 'ldap', 'sso_saml', 'sso_oidc', 'google');
 CREATE TYPE asset_status AS ENUM ('operational', 'needs_attention', 'maintenance', 'offline', 'decommissioned');
 CREATE TYPE alert_severity AS ENUM ('info', 'low', 'medium', 'high', 'critical');

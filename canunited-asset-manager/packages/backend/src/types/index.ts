@@ -1,6 +1,16 @@
 // Local type definitions (replaces @canunited/shared for standalone deployment)
 
-export type UserRole = 'administrator' | 'analyst' | 'technician' | 'viewer';
+export enum UserRole {
+  ADMIN = 'administrator',
+  ANALYST = 'analyst',
+  TECHNICIAN = 'technician',
+  VIEWER = 'viewer',
+  ASSET_MANAGER = 'asset_manager',
+  FIELD_TECHNICIAN = 'field_technician',
+  RELIABILITY_ENGINEER = 'reliability_engineer',
+}
+
+export type UserRoleType = `${UserRole}`;
 
 export type VendorType = 'schneider' | 'abb' | 'siemens' | 'ge' | 'eaton' | 'other';
 
@@ -67,7 +77,7 @@ export interface WSMessage {
 
 // Role-based permissions
 const RolePermissions: Record<UserRole, string[]> = {
-  administrator: [
+  [UserRole.ADMIN]: [
     'dashboard:view', 'dashboard:edit',
     'assets:view', 'assets:create', 'assets:edit', 'assets:delete',
     'sensors:view', 'sensors:create', 'sensors:edit', 'sensors:delete',
@@ -81,7 +91,7 @@ const RolePermissions: Record<UserRole, string[]> = {
     'integrations:view', 'integrations:manage',
     'audit:view'
   ],
-  analyst: [
+  [UserRole.ANALYST]: [
     'dashboard:view',
     'assets:view',
     'sensors:view',
@@ -92,7 +102,7 @@ const RolePermissions: Record<UserRole, string[]> = {
     'topology:view',
     'audit:view'
   ],
-  technician: [
+  [UserRole.TECHNICIAN]: [
     'dashboard:view',
     'assets:view',
     'sensors:view',
@@ -100,12 +110,40 @@ const RolePermissions: Record<UserRole, string[]> = {
     'alerts:view', 'alerts:acknowledge', 'alerts:resolve',
     'topology:view'
   ],
-  viewer: [
+  [UserRole.VIEWER]: [
     'dashboard:view',
     'assets:view',
     'sensors:view',
     'maintenance:view',
     'alerts:view',
+    'topology:view'
+  ],
+  [UserRole.ASSET_MANAGER]: [
+    'dashboard:view', 'dashboard:edit',
+    'assets:view', 'assets:create', 'assets:edit',
+    'sensors:view', 'sensors:create', 'sensors:edit',
+    'maintenance:view', 'maintenance:create', 'maintenance:edit', 'maintenance:assign',
+    'alerts:view', 'alerts:acknowledge', 'alerts:resolve',
+    'reports:view', 'reports:create', 'reports:export',
+    'analytics:view',
+    'topology:view', 'topology:edit'
+  ],
+  [UserRole.FIELD_TECHNICIAN]: [
+    'dashboard:view',
+    'assets:view',
+    'sensors:view', 'sensors:edit',
+    'maintenance:view', 'maintenance:edit',
+    'alerts:view', 'alerts:acknowledge', 'alerts:resolve',
+    'topology:view'
+  ],
+  [UserRole.RELIABILITY_ENGINEER]: [
+    'dashboard:view',
+    'assets:view', 'assets:edit',
+    'sensors:view',
+    'maintenance:view', 'maintenance:create', 'maintenance:edit',
+    'alerts:view', 'alerts:acknowledge',
+    'reports:view', 'reports:create', 'reports:export',
+    'analytics:view', 'analytics:advanced',
     'topology:view'
   ]
 };
