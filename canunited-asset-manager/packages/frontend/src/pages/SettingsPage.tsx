@@ -264,51 +264,464 @@ function NotificationsTab() {
 }
 
 function SecurityTab() {
+  const { t } = useTranslation();
+  const [mfaEnabled, setMfaEnabled] = useState(false);
+  const [showMfaSetup, setShowMfaSetup] = useState(false);
+  const [showSsoConfig, setShowSsoConfig] = useState(false);
+  const [showLdapConfig, setShowLdapConfig] = useState(false);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [mfaSecret, setMfaSecret] = useState<{ qrCodeUrl: string; secret: string; backupCodes: string[] } | null>(null);
+  const [verificationCode, setVerificationCode] = useState('');
+
+  // Mock MFA setup
+  const handleSetupMfa = async () => {
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setMfaSecret({
+      qrCodeUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFl0lEQVR4nO3dQW7jMBAAwfz/0+sNvCzFISkq3dUAchDLHo3s9eft7e3tDSD05e8HAH5PACBMACAMACAsABAWAAgLAIQFAMICAGEBgLAAQFgAICwAEBYACAsAhAUAwgIAYQGAsABAWAAgLAAQFgAICwCEBQDCAgBhAYCwAEBYACAsABAWAAgLAIQFAMICAGEBgLAAQFgAICwAEBYACAsAhAUAwgIAYQGAsABAWAAgLAAQ/vrtJ8DNfL5fP36K/yAOAh9/y9/j37AAQFgAICwAEBYACH+K6m38+9wE/l0cAD7+ln/HAgBhAYCwAEBYACA=',
+      secret: 'JBSWY3DPEHPK3PXP',
+      backupCodes: ['1234-5678', 'ABCD-EFGH', '9876-5432', 'WXYZ-1234', 'QWER-TYUI', 'ASDF-GHJK', 'ZXCV-BNML', '2468-1357', '1357-2468', 'POIU-YTREW'],
+    });
+    setShowMfaSetup(true);
+  };
+
+  const handleVerifyMfa = async () => {
+    if (verificationCode.length === 6) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setMfaEnabled(true);
+      setShowMfaSetup(false);
+      toast.success(t('security.mfaEnabled'));
+    } else {
+      toast.error(t('security.invalidCode'));
+    }
+  };
+
+  const handleDisableMfa = () => {
+    setMfaEnabled(false);
+    setMfaSecret(null);
+    toast.success(t('security.mfaDisabled'));
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white mb-1">Security Settings</h2>
-        <p className="text-sm text-slate-400">Manage your security preferences</p>
+        <h2 className="text-lg font-semibold text-white mb-1">{t('security.title')}</h2>
+        <p className="text-sm text-slate-400">{t('security.subtitle')}</p>
       </div>
 
+      {/* Change Password */}
       <div className="p-4 bg-slate-800/50 rounded-lg">
         <div className="flex items-center gap-3 mb-4">
           <Key className="w-5 h-5 text-slate-400" />
-          <h3 className="font-medium text-white">Change Password</h3>
+          <h3 className="font-medium text-white">{t('security.changePassword')}</h3>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-slate-400 mb-2">Current Password</label>
+            <label className="block text-sm text-slate-400 mb-2">{t('security.currentPassword')}</label>
             <input type="password" className="input w-full" />
           </div>
           <div>
-            <label className="block text-sm text-slate-400 mb-2">New Password</label>
+            <label className="block text-sm text-slate-400 mb-2">{t('security.newPassword')}</label>
             <input type="password" className="input w-full" />
           </div>
           <div>
-            <label className="block text-sm text-slate-400 mb-2">Confirm New Password</label>
+            <label className="block text-sm text-slate-400 mb-2">{t('security.confirmPassword')}</label>
             <input type="password" className="input w-full" />
           </div>
+          <button className="btn btn-primary flex items-center gap-2">
+            <Save className="w-4 h-4" />
+            {t('security.updatePassword')}
+          </button>
         </div>
       </div>
 
+      {/* MFA Section */}
       <div className="p-4 bg-slate-800/50 rounded-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Shield className="w-5 h-5 text-slate-400" />
+            <Shield className="w-5 h-5 text-primary-400" />
             <div>
-              <h3 className="font-medium text-white">Two-Factor Authentication</h3>
-              <p className="text-sm text-slate-400">Add an extra layer of security</p>
+              <h3 className="font-medium text-white">{t('security.mfa')}</h3>
+              <p className="text-sm text-slate-400">{t('security.mfaDescription')}</p>
             </div>
           </div>
-          <button className="btn btn-outline">Enable</button>
+          {mfaEnabled ? (
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs">
+                <CheckCircle className="w-3 h-3" />
+                {t('security.enabled')}
+              </span>
+              <button onClick={handleDisableMfa} className="btn btn-outline text-red-400 hover:bg-red-500/10">
+                {t('security.disable')}
+              </button>
+            </div>
+          ) : (
+            <button onClick={handleSetupMfa} className="btn btn-primary">
+              {t('security.enable')}
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <button className="btn btn-primary flex items-center gap-2">
-          <Save className="w-4 h-4" />
-          Update Password
+      {/* SSO Configuration */}
+      <div className="p-4 bg-slate-800/50 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Globe className="w-5 h-5 text-blue-400" />
+            <div>
+              <h3 className="font-medium text-white">{t('security.sso')}</h3>
+              <p className="text-sm text-slate-400">{t('security.ssoDescription')}</p>
+            </div>
+          </div>
+          <button onClick={() => setShowSsoConfig(true)} className="btn btn-outline">
+            {t('common.configure')}
+          </button>
+        </div>
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <SsoProviderCard provider="google" name="Google" connected={false} />
+          <SsoProviderCard provider="microsoft" name="Microsoft Azure AD" connected={false} />
+          <SsoProviderCard provider="okta" name="Okta" connected={false} />
+          <SsoProviderCard provider="saml" name="SAML 2.0" connected={false} />
+        </div>
+      </div>
+
+      {/* LDAP Configuration */}
+      <div className="p-4 bg-slate-800/50 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Building2 className="w-5 h-5 text-purple-400" />
+            <div>
+              <h3 className="font-medium text-white">{t('security.ldap')}</h3>
+              <p className="text-sm text-slate-400">{t('security.ldapDescription')}</p>
+            </div>
+          </div>
+          <button onClick={() => setShowLdapConfig(true)} className="btn btn-outline">
+            {t('common.configure')}
+          </button>
+        </div>
+      </div>
+
+      {/* API Keys */}
+      <div className="p-4 bg-slate-800/50 rounded-lg">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Key className="w-5 h-5 text-amber-400" />
+            <div>
+              <h3 className="font-medium text-white">{t('security.apiKeys')}</h3>
+              <p className="text-sm text-slate-400">{t('security.apiKeysDescription')}</p>
+            </div>
+          </div>
+          <button onClick={() => setShowApiKeyModal(true)} className="btn btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            {t('security.createApiKey')}
+          </button>
+        </div>
+        <div className="space-y-2">
+          <ApiKeyRow name="Production API Key" lastUsed="2 hours ago" created="Jan 15, 2026" />
+          <ApiKeyRow name="Development Key" lastUsed="5 days ago" created="Dec 10, 2025" />
+        </div>
+      </div>
+
+      {/* MFA Setup Modal */}
+      {showMfaSetup && mfaSecret && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold text-white mb-4">{t('security.setupMfa')}</h2>
+
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-slate-400 mb-4">{t('security.scanQrCode')}</p>
+                <div className="bg-white p-4 rounded-lg inline-block">
+                  <img src={mfaSecret.qrCodeUrl} alt="QR Code" className="w-48 h-48" />
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-400 mb-2">{t('security.manualEntry')}</p>
+                <code className="block p-2 bg-slate-800 rounded text-center text-sm font-mono text-primary-400">
+                  {mfaSecret.secret}
+                </code>
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.verificationCode')}</label>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                  className="input w-full text-center text-2xl tracking-widest font-mono"
+                />
+              </div>
+
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <p className="text-xs text-amber-400 mb-2">{t('security.backupCodesWarning')}</p>
+                <div className="grid grid-cols-2 gap-1 text-xs font-mono text-slate-300">
+                  {mfaSecret.backupCodes.map((code, i) => (
+                    <span key={i}>{code}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setShowMfaSetup(false)} className="btn btn-outline">
+                {t('common.cancel')}
+              </button>
+              <button onClick={handleVerifyMfa} className="btn btn-primary">
+                {t('security.verifyAndEnable')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SSO Configuration Modal */}
+      {showSsoConfig && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold text-white mb-4">{t('security.configureSso')}</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.ssoProvider')}</label>
+                <select className="input w-full">
+                  <option value="oidc">OpenID Connect (OIDC)</option>
+                  <option value="saml">SAML 2.0</option>
+                  <option value="google">Google Workspace</option>
+                  <option value="azure">Microsoft Azure AD</option>
+                  <option value="okta">Okta</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.clientId')}</label>
+                <input type="text" className="input w-full" placeholder="your-client-id" />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.clientSecret')}</label>
+                <input type="password" className="input w-full" placeholder="••••••••••••" />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.issuerUrl')}</label>
+                <input type="url" className="input w-full" placeholder="https://accounts.google.com" />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.redirectUri')}</label>
+                <input
+                  type="url"
+                  className="input w-full bg-slate-800/50"
+                  value="https://app.canunited.com/api/v1/auth/sso/callback"
+                  disabled
+                />
+              </div>
+
+              <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <p className="text-xs text-blue-400">
+                  {t('security.ssoHelp')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setShowSsoConfig(false)} className="btn btn-outline">
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => {
+                  toast.success(t('security.ssoSaved'));
+                  setShowSsoConfig(false);
+                }}
+                className="btn btn-primary"
+              >
+                {t('common.save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LDAP Configuration Modal */}
+      {showLdapConfig && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold text-white mb-4">{t('security.configureLdap')}</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.ldapUrl')}</label>
+                <input type="url" className="input w-full" placeholder="ldaps://ldap.example.com:636" />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.baseDn')}</label>
+                <input type="text" className="input w-full" placeholder="dc=example,dc=com" />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.bindDn')}</label>
+                <input type="text" className="input w-full" placeholder="cn=admin,dc=example,dc=com" />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.bindPassword')}</label>
+                <input type="password" className="input w-full" />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.userSearchFilter')}</label>
+                <input type="text" className="input w-full" placeholder="(sAMAccountName={{username}})" />
+              </div>
+
+              <ToggleOption
+                label={t('security.useTls')}
+                description={t('security.useTlsDescription')}
+                enabled={true}
+                onChange={() => {}}
+              />
+            </div>
+
+            <div className="flex justify-between mt-6">
+              <button className="btn btn-outline">{t('security.testConnection')}</button>
+              <div className="flex gap-3">
+                <button onClick={() => setShowLdapConfig(false)} className="btn btn-outline">
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={() => {
+                    toast.success(t('security.ldapSaved'));
+                    setShowLdapConfig(false);
+                  }}
+                  className="btn btn-primary"
+                >
+                  {t('common.save')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* API Key Modal */}
+      {showApiKeyModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold text-white mb-4">{t('security.createApiKey')}</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.keyName')}</label>
+                <input type="text" className="input w-full" placeholder="My API Key" />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.keyExpiry')}</label>
+                <select className="input w-full">
+                  <option value="30">{t('security.days30')}</option>
+                  <option value="90">{t('security.days90')}</option>
+                  <option value="365">{t('security.days365')}</option>
+                  <option value="never">{t('security.neverExpires')}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">{t('security.permissions')}</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    {t('security.readAssets')}
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <input type="checkbox" className="rounded" />
+                    {t('security.writeAssets')}
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <input type="checkbox" defaultChecked className="rounded" />
+                    {t('security.readSensors')}
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <input type="checkbox" className="rounded" />
+                    {t('security.writeMaintenance')}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setShowApiKeyModal(false)} className="btn btn-outline">
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => {
+                  toast.success(t('security.apiKeyCreated'));
+                  setShowApiKeyModal(false);
+                }}
+                className="btn btn-primary"
+              >
+                {t('security.generate')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SsoProviderCard({ provider, name, connected }: { provider: string; name: string; connected: boolean }) {
+  const icons: Record<string, string> = {
+    google: '🔵',
+    microsoft: '🟦',
+    okta: '🟠',
+    saml: '🔐',
+  };
+
+  return (
+    <div
+      className={clsx(
+        'p-3 rounded-lg border transition-colors cursor-pointer',
+        connected
+          ? 'bg-emerald-500/10 border-emerald-500/50'
+          : 'bg-slate-800/30 border-slate-700/50 hover:border-slate-600'
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{icons[provider]}</span>
+        <span className="text-sm text-white">{name}</span>
+      </div>
+      {connected && (
+        <span className="text-xs text-emerald-400 mt-1 block">Connected</span>
+      )}
+    </div>
+  );
+}
+
+function ApiKeyRow({ name, lastUsed, created }: { name: string; lastUsed: string; created: string }) {
+  const [showKey, setShowKey] = useState(false);
+  const maskedKey = 'sk_live_••••••••••••••••••••••••••••••';
+  const realKey = 'sk_live_canunited_a1b2c3d4e5f6g7h8i9j0';
+
+  return (
+    <div className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
+      <div className="flex-1">
+        <p className="text-sm font-medium text-white">{name}</p>
+        <p className="text-xs text-slate-500 font-mono">{showKey ? realKey : maskedKey}</p>
+        <p className="text-xs text-slate-500 mt-1">
+          Last used: {lastUsed} • Created: {created}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setShowKey(!showKey)}
+          className="btn btn-outline text-xs px-2 py-1"
+        >
+          {showKey ? 'Hide' : 'Show'}
+        </button>
+        <button className="p-2 text-red-400 hover:bg-red-500/10 rounded transition-colors">
+          <Trash2 className="w-4 h-4" />
         </button>
       </div>
     </div>
