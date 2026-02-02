@@ -21,13 +21,13 @@ async function seed() {
     );
     console.log('✅ Created organization');
 
-    // Create demo users
-    const passwordHash = await bcrypt.hash('demo123456', 12);
+    // Create demo users (matching frontend authStore demoUsers)
+    const passwordHash = await bcrypt.hash('password123', 12);
     const users = [
-      { email: 'admin@canunited.demo', name: 'System Admin', role: 'admin' },
-      { email: 'engineer@canunited.demo', name: 'Marcus Chen', role: 'reliability_engineer' },
-      { email: 'manager@canunited.demo', name: 'Elena Wong', role: 'asset_manager' },
-      { email: 'tech@canunited.demo', name: 'Kenji Tanaka', role: 'field_technician' },
+      { email: 'admin@canunited.com', name: 'System Admin', role: 'administrator' },
+      { email: 'analyst@canunited.com', name: 'Data Analyst', role: 'analyst' },
+      { email: 'tech@canunited.com', name: 'Field Technician', role: 'technician' },
+      { email: 'viewer@canunited.com', name: 'Report Viewer', role: 'viewer' },
     ];
 
     for (const user of users) {

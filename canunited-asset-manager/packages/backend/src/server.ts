@@ -5,10 +5,16 @@ import compression from 'compression';
 import morgan from 'morgan';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { config } from './config/index.js';
 import { connectDatabase, pool } from './db/connection.js';
 import { setupRoutes } from './routes/index.js';
 import { connectRedis, redisClient } from './cache/redis.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const server = createServer(app);
@@ -108,6 +114,32 @@ process.on('SIGTERM', async () => {
   server.close(() => process.exit(0));
 });
 
+// Initialize database schema if needed
+async function initDatabase() {
+  try {
+    // Check if tables exist
+    const result = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_name = 'users'
+      );
+    `);
+
+    if (!result.rows[0].exists) {
+      console.log('📦 Initializing database schema...');
+      const sqlPath = join(__dirname, '../sql/init.sql');
+      const sql = readFileSync(sqlPath, 'utf8');
+      await pool.query(sql);
+      console.log('✅ Database schema initialized with seed data');
+    } else {
+      console.log('✅ Database schema already exists');
+    }
+  } catch (error) {
+    console.error('⚠️ Database initialization failed:', error);
+    throw error;
+  }
+}
+
 // Start server
 async function start() {
   let dbConnected = false;
@@ -119,6 +151,9 @@ async function start() {
       await connectDatabase();
       dbConnected = true;
       console.log('✅ Database connected');
+
+      // Initialize schema if needed
+      await initDatabase();
     } catch (error) {
       console.error('⚠️ Database connection failed:', error);
       console.log('⚠️ Server will start without database (health check will still work)');
