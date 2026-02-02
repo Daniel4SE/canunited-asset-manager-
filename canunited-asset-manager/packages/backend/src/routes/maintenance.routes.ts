@@ -44,7 +44,7 @@ maintenanceRoutes.get('/', async (req: Request, res: Response, next: NextFunctio
       perPage = '20'
     } = req.query;
 
-    // Use tenant_id as fallback for organization_id
+    // Use both organization_id and tenant_id for compatibility
     let whereConditions = ['(m.organization_id = $1 OR m.tenant_id = $1)'];
     const params: unknown[] = [req.user!.organizationId];
     let paramIndex = 2;
@@ -152,7 +152,7 @@ maintenanceRoutes.get('/upcoming', async (req: Request, res: Response, next: Nex
         COUNT(*) FILTER (WHERE status = 'overdue') as overdue,
         COUNT(*) FILTER (WHERE oem_service_required = true AND status IN ('scheduled', 'in_progress')) as oem_required
        FROM maintenance_tasks
-       WHERE organization_id = $1
+       WHERE (organization_id = $1 OR tenant_id = $1)
        AND due_date <= NOW() + INTERVAL '${parseInt(days as string)} days'
        AND status NOT IN ('completed', 'cancelled')`,
       [req.user!.organizationId]
@@ -187,10 +187,10 @@ maintenanceRoutes.post('/', authorize(UserRole.ADMIN, UserRole.ASSET_MANAGER, Us
 
     const result = await query(
       `INSERT INTO maintenance_tasks (
-        id, organization_id, site_id, asset_id, title, description, task_type, priority,
-        status, scheduled_date, due_date, assigned_to, assigned_team, oem_service_required,
-        oem_vendor, estimated_duration_hours, checklist
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'scheduled', $9, $10, $11, $12, $13, $14, $15, $16)
+        id, organization_id, tenant_id, site_id, asset_id, title, description, task_type, priority,
+        status, scheduled_start, due_date, assigned_to, assigned_team, oem_service_required,
+        estimated_duration_hours
+      ) VALUES ($1, $2, $2, $3, $4, $5, $6, $7, $8, 'scheduled', $9, $10, $11, $12, $13, $14)
       RETURNING *`,
       [
         id,
@@ -206,9 +206,7 @@ maintenanceRoutes.post('/', authorize(UserRole.ADMIN, UserRole.ASSET_MANAGER, Us
         data.assignedTo || null,
         data.assignedTeam || null,
         data.oemServiceRequired,
-        data.oemVendor || null,
-        data.estimatedDurationHours || null,
-        JSON.stringify(checklist)
+        data.estimatedDurationHours || null
       ]
     );
 
@@ -242,7 +240,7 @@ maintenanceRoutes.patch('/:id/status', async (req: Request, res: Response, next:
 
     // Get old status for audit log
     const oldTask = await query<{ status: string; title: string }>(
-      'SELECT status, title FROM maintenance_tasks WHERE id = $1 AND organization_id = $2',
+      'SELECT status, title FROM maintenance_tasks WHERE id = $1 AND (organization_id = $2 OR tenant_id = $2)',
       [id, req.user!.organizationId]
     );
     const oldStatus = oldTask.rows[0]?.status;
@@ -267,7 +265,7 @@ maintenanceRoutes.patch('/:id/status', async (req: Request, res: Response, next:
 
     const result = await query(
       `UPDATE maintenance_tasks SET ${updates.join(', ')}
-       WHERE id = $${paramIndex++} AND organization_id = $${paramIndex}
+       WHERE id = $${paramIndex++} AND (organization_id = $${paramIndex} OR tenant_id = $${paramIndex})
        RETURNING *`,
       params
     );
@@ -302,9 +300,9 @@ maintenanceRoutes.patch('/:id/checklist/:itemId', async (req: Request, res: Resp
     const { id, itemId } = req.params;
     const { isCompleted, notes } = req.body;
 
-    // Get current task
-    const taskResult = await query<{ checklist: string }>(
-      'SELECT checklist FROM maintenance_tasks WHERE id = $1 AND organization_id = $2',
+    // Get current task (note: checklist column may not exist, return empty string as fallback)
+    const taskResult = await query<{ instructions: string }>(
+      'SELECT instructions FROM maintenance_tasks WHERE id = $1 AND (organization_id = $2 OR tenant_id = $2)',
       [id, req.user!.organizationId]
     );
 
@@ -345,12 +343,12 @@ maintenanceRoutes.delete('/:id', authorize(UserRole.ADMIN), async (req: Request,
 
     // Get task info for audit log before deleting
     const taskInfo = await query<{ title: string; status: string }>(
-      'SELECT title, status FROM maintenance_tasks WHERE id = $1 AND organization_id = $2',
+      'SELECT title, status FROM maintenance_tasks WHERE id = $1 AND (organization_id = $2 OR tenant_id = $2)',
       [id, req.user!.organizationId]
     );
 
     const result = await query(
-      'DELETE FROM maintenance_tasks WHERE id = $1 AND organization_id = $2 RETURNING id',
+      'DELETE FROM maintenance_tasks WHERE id = $1 AND (organization_id = $2 OR tenant_id = $2) RETURNING id',
       [id, req.user!.organizationId]
     );
 

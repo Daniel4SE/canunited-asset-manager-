@@ -24,7 +24,8 @@ alertRoutes.get('/', async (req: Request, res: Response, next: NextFunction) => 
       perPage = '50'
     } = req.query;
 
-    let whereConditions = ['a.organization_id = $1'];
+    // Use both organization_id and tenant_id for compatibility
+    let whereConditions = ['(a.organization_id = $1 OR a.tenant_id = $1)'];
     const params: unknown[] = [req.user!.organizationId];
     let paramIndex = 2;
 
@@ -90,15 +91,15 @@ alertRoutes.get('/', async (req: Request, res: Response, next: NextFunction) => 
         status: row.status,
         title: row.title,
         description: row.description,
-        category: row.category,
-        source: row.source,
+        category: row.category || 'system',
+        source: row.source || 'system',
         triggeredAt: row.triggered_at,
         acknowledgedAt: row.acknowledged_at,
         acknowledgedBy: row.acknowledged_by,
         resolvedAt: row.resolved_at,
         resolvedBy: row.resolved_by,
         resolutionNotes: row.resolution_notes,
-        metadata: row.metadata
+        metadata: row.metadata || {}
       })),
       meta: {
         page: parseInt(page as string),
@@ -117,7 +118,7 @@ alertRoutes.get('/summary', async (req: Request, res: Response, next: NextFuncti
   try {
     const { siteId } = req.query;
 
-    let whereConditions = ['organization_id = $1', "status = 'active'"];
+    let whereConditions = ['(organization_id = $1 OR tenant_id = $1)', "status = 'active'"];
     const params: unknown[] = [req.user!.organizationId];
 
     if (siteId) {
@@ -165,7 +166,7 @@ alertRoutes.post('/:id/acknowledge', async (req: Request, res: Response, next: N
        SET status = 'acknowledged', 
            acknowledged_at = NOW(), 
            acknowledged_by = $1
-       WHERE id = $2 AND organization_id = $3 AND status = 'active'
+       WHERE id = $2 AND (organization_id = $3 OR tenant_id = $3) AND status = 'active'
        RETURNING *`,
       [req.user!.userId, id, req.user!.organizationId]
     );
@@ -199,7 +200,7 @@ alertRoutes.post('/:id/resolve', async (req: Request, res: Response, next: NextF
            resolved_at = NOW(), 
            resolved_by = $1,
            resolution_notes = $2
-       WHERE id = $3 AND organization_id = $4 AND status IN ('active', 'acknowledged')
+       WHERE id = $3 AND (organization_id = $4 OR tenant_id = $4) AND status IN ('active', 'acknowledged')
        RETURNING *`,
       [req.user!.userId, resolutionNotes || null, id, req.user!.organizationId]
     );
@@ -229,8 +230,8 @@ alertRoutes.post('/', authorize(UserRole.ADMIN), async (req: Request, res: Respo
 
     const result = await query(
       `INSERT INTO alerts (
-        id, organization_id, site_id, asset_id, severity, status, title, description, category, source
-      ) VALUES ($1, $2, $3, $4, $5, 'active', $6, $7, $8, $9)
+        id, organization_id, tenant_id, site_id, asset_id, severity, status, title, description, category, source, triggered_at
+      ) VALUES ($1, $2, $2, $3, $4, $5, 'active', $6, $7, $8, $9, NOW())
       RETURNING *`,
       [
         id,

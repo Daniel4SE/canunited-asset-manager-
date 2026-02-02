@@ -27,7 +27,7 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { siteId, sensorType, vendor, isOnline } = req.query;
 
-    // Use tenant_id as fallback for organization_id
+    // Use both organization_id and tenant_id for compatibility
     let whereConditions = ['(s.organization_id = $1 OR s.tenant_id = $1)'];
     const params: unknown[] = [req.user!.organizationId];
     let paramIndex = 2;
@@ -127,9 +127,9 @@ sensorRoutes.post('/', authorize(UserRole.ADMIN, UserRole.ASSET_MANAGER), async 
 
     const result = await query(
       `INSERT INTO sensors (
-        id, site_id, organization_id, name, sensor_type, vendor, model,
-        serial_number, protocol, gateway_id, assigned_asset_id, is_online
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, false)
+        id, site_id, organization_id, tenant_id, name, sensor_type, vendor, model,
+        serial_number, protocol, gateway_id, asset_id, is_online
+      ) VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, $9, $10, $11, false)
       RETURNING *`,
       [
         id,
@@ -174,7 +174,7 @@ sensorRoutes.post('/:id/assign', authorize(UserRole.ADMIN, UserRole.ASSET_MANAGE
 
     // Get sensor info
     const sensorResult = await query(
-      'SELECT sensor_type FROM sensors WHERE id = $1 AND organization_id = $2',
+      'SELECT sensor_type FROM sensors WHERE id = $1 AND (organization_id = $2 OR tenant_id = $2)',
       [id, req.user!.organizationId]
     );
 
@@ -184,7 +184,7 @@ sensorRoutes.post('/:id/assign', authorize(UserRole.ADMIN, UserRole.ASSET_MANAGE
 
     // Update sensor
     await query(
-      'UPDATE sensors SET assigned_asset_id = $1 WHERE id = $2',
+      'UPDATE sensors SET asset_id = $1 WHERE id = $2',
       [assetId, id]
     );
 
@@ -208,7 +208,7 @@ sensorRoutes.post('/:id/unassign', authorize(UserRole.ADMIN, UserRole.ASSET_MANA
     const { id } = req.params;
 
     await query(
-      'UPDATE sensors SET assigned_asset_id = NULL WHERE id = $1 AND organization_id = $2',
+      'UPDATE sensors SET asset_id = NULL WHERE id = $1 AND (organization_id = $2 OR tenant_id = $2)',
       [id, req.user!.organizationId]
     );
 
@@ -226,7 +226,7 @@ sensorRoutes.delete('/:id', authorize(UserRole.ADMIN), async (req: Request, res:
     const { id } = req.params;
 
     const result = await query(
-      'DELETE FROM sensors WHERE id = $1 AND organization_id = $2 RETURNING id',
+      'DELETE FROM sensors WHERE id = $1 AND (organization_id = $2 OR tenant_id = $2) RETURNING id',
       [id, req.user!.organizationId]
     );
 
