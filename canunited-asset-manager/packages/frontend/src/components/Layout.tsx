@@ -69,9 +69,20 @@ export default function Layout() {
     navigate('/login');
   };
 
-  // Show all navigation items (permission filtering disabled for now)
-  // TODO: Re-enable permission filtering when backend auth is fully working
-  const filteredNavigation = navigation;
+  // Filter navigation based on user role and permissions
+  const filteredNavigation = navigation.filter((item) => {
+    // Check role-based access first
+    if (item.roles && item.roles.length > 0) {
+      if (!hasRole(item.roles)) {
+        return false;
+      }
+    }
+    // Check permission-based access
+    if (item.permission) {
+      return hasPermission(item.permission);
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-slate-950 bg-circuit-pattern">
