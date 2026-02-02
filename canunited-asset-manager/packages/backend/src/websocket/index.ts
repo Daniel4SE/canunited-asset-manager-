@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
 import { JWTPayload } from '../middleware/auth.js';
-import { WSEventType, WSMessage } from '../types/index.js';
+import { WSMessage } from '../types/index.js';
 
 interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean;
@@ -74,7 +74,7 @@ export function setupWebSocket(server: WebSocketServer): void {
 
     // Send connection confirmation
     sendToClient(ws, {
-      type: WSEventType.GATEWAY_STATUS,
+      type: 'connection_status',
       payload: { status: 'connected' },
       timestamp: new Date().toISOString()
     });
@@ -99,7 +99,7 @@ function handleMessage(ws: ExtendedWebSocket, message: { type: string; payload: 
       
     case 'ping':
       sendToClient(ws, {
-        type: WSEventType.GATEWAY_STATUS,
+        type: 'connection_status',
         payload: { pong: true },
         timestamp: new Date().toISOString()
       });

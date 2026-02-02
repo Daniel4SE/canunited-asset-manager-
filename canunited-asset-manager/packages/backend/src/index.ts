@@ -81,16 +81,17 @@ async function bootstrap() {
     });
   });
 
-  // Start server
-  server.listen(config.port, () => {
+  // Start server - bind to 0.0.0.0 for Railway/Docker
+  server.listen(config.port, '0.0.0.0', () => {
     console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║   🏭 CANUnited Asset Manager Backend                      ║
 ║                                                           ║
-║   Server running on http://localhost:${config.port}              ║
-║   WebSocket on ws://localhost:${config.port}/ws                  ║
+║   Server running on http://0.0.0.0:${config.port}                ║
+║   WebSocket on ws://0.0.0.0:${config.port}/ws                    ║
 ║   Environment: ${config.nodeEnv.padEnd(40)}║
+║   PORT: ${String(config.port).padEnd(48)}║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
     `);
