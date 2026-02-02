@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { pool, query } from './connection.js';
-import { VendorType, AssetType, SensorType, ProtocolType, AlertSeverity } from '@canunited/shared';
+import { VendorType, AssetType, SensorType, ProtocolType, AlertSeverity } from '../types/index.js';
 
 async function seed() {
   console.log('🌱 Starting database seed...');

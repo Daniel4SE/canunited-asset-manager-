@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { query } from '../db/connection.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { notFound, badRequest } from '../middleware/errorHandler.js';
-import { UserRole } from '@canunited/shared';
+import { UserRole } from '../types/index.js';
 
 export const topologyRoutes = Router();
 

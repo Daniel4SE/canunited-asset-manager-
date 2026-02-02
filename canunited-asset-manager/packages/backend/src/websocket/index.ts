@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
 import { JWTPayload } from '../middleware/auth.js';
-import { WSEventType, WSMessage } from '@canunited/shared';
+import { WSEventType, WSMessage } from '../types/index.js';
 
 interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean;

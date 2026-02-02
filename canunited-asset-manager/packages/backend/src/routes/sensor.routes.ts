@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { query } from '../db/connection.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { notFound, badRequest } from '../middleware/errorHandler.js';
-import { UserRole, SensorType, VendorType, ProtocolType } from '@canunited/shared';
+import { UserRole, SensorType, VendorType, ProtocolType } from '../types/index.js';
 
 export const sensorRoutes = Router();
 

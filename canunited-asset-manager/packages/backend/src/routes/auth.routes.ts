@@ -11,7 +11,7 @@ import {
   JWTPayload,
 } from '../middleware/auth.js';
 import { badRequest, unauthorized, notFound } from '../middleware/errorHandler.js';
-import { UserRole } from '@canunited/shared';
+import { UserRole } from '../types/index.js';
 import {
   setupMFA,
   verifyTOTP,

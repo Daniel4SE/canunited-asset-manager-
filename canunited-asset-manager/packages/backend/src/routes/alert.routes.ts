@@ -4,9 +4,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { query } from '../db/connection.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { notFound, badRequest } from '../middleware/errorHandler.js';
-import { UserRole, AlertSeverity, AlertStatus } from '@canunited/shared';
+import { UserRole, AlertSeverity, AlertStatus } from '../types/index.js';
 import { broadcastToOrganization } from '../websocket/index.js';
-import { WSEventType } from '@canunited/shared';
+import { WSEventType } from '../types/index.js';
 
 export const alertRoutes = Router();
 

@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { query } from '../db/connection.js';
 import { authenticate } from '../middleware/auth.js';
-import { VendorType, AssetType } from '@canunited/shared';
+import { VendorType, AssetType } from '../types/index.js';
 
 export const analyticsRoutes = Router();
 

@@ -4,7 +4,7 @@ import { query } from '../db/connection.js';
 import { generateAccessToken, generateRefreshToken, authenticate, authorize } from '../middleware/auth.js';
 import { SAMLService, OIDCService, createSSOService } from '../services/auth/sso.service.js';
 import { LDAPService, createLDAPService } from '../services/auth/ldap.service.js';
-import { UserRole } from '@canunited/shared';
+import { UserRole } from '../types/index.js';
 import { redisClient } from '../cache/redis.js';
 import crypto from 'crypto';
 

@@ -13,7 +13,7 @@ import {
   UserRole,
   getHealthStatus,
   generateAssetTag
-} from '@canunited/shared';
+} from '../types/index.js';
 
 export const assetRoutes = Router();
 
