@@ -2,10 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-// GitHub Pages base URL (set via env or defaults to root)
-const base = process.env.GITHUB_PAGES === 'true'
-  ? '/canunited-asset-manager/'
-  : '/';
+// Base URL - use root for custom domain
+const base = '/';
 
 export default defineConfig({
   base,
