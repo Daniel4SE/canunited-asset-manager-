@@ -89,7 +89,9 @@ app.use((req, res) => {
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err);
-  res.status(err.status || 500).json({
+  // Support both err.statusCode (AppError) and err.status (other errors)
+  const statusCode = err.statusCode || err.status || 500;
+  res.status(statusCode).json({
     success: false,
     error: {
       code: err.code || 'INTERNAL_ERROR',
