@@ -409,7 +409,7 @@ CREATE TABLE cmms_integrations (
 
 CREATE TABLE audit_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id),
     action VARCHAR(50) NOT NULL,
     entity_type VARCHAR(50) NOT NULL,

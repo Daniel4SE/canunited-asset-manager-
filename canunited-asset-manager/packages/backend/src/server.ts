@@ -150,6 +150,10 @@ async function runMigrations() {
     await pool.query(`
       ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS details JSONB;
     `);
+    // Make tenant_id nullable in audit_logs
+    await pool.query(`
+      ALTER TABLE audit_logs ALTER COLUMN tenant_id DROP NOT NULL;
+    `);
     console.log('✅ Migrations completed');
   } catch (error) {
     console.error('⚠️ Migration error (may be ignored):', error);

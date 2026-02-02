@@ -95,9 +95,9 @@ authRoutes.post('/login', async (req: Request, res: Response, next: NextFunction
     if (!isValidPassword) {
       // Log failed attempt
       await query(
-        `INSERT INTO audit_logs (user_id, action, entity_type, details, ip_address)
-         VALUES ($1, 'login_failed', 'auth', $2, $3)`,
-        [user.id, JSON.stringify({ reason: 'invalid_password' }), req.ip]
+        `INSERT INTO audit_logs (tenant_id, user_id, action, entity_type, details, ip_address)
+         VALUES ($1, $2, 'login_failed', 'auth', $3, $4)`,
+        [user.tenant_id, user.id, JSON.stringify({ reason: 'invalid_password' }), req.ip]
       );
       unauthorized('Invalid email or password');
     }
