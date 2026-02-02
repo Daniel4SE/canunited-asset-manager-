@@ -4,107 +4,71 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import { createServer } from 'http';
-import { WebSocketServer } from 'ws';
-import { config } from './config/index.js';
-import { setupRoutes } from './routes/index.js';
-import { setupWebSocket } from './websocket/index.js';
-import { connectDatabase } from './db/connection.js';
-import { connectRedis } from './cache/redis.js';
-import { errorHandler } from './middleware/errorHandler.js';
-import { requestLogger } from './middleware/requestLogger.js';
 
-async function bootstrap() {
-  const app = express();
-  const server = createServer(app);
+// Get port from environment
+const PORT = parseInt(process.env.PORT || '4000', 10);
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
-  // Security & Compression
-  app.use(helmet());
-  app.use(compression());
+console.log('🚀 Starting CANUnited Backend...');
+console.log(`📌 PORT: ${PORT}`);
+console.log(`📌 NODE_ENV: ${NODE_ENV}`);
 
-  // CORS
-  app.use(cors({
-    origin: config.corsOrigin,
-    credentials: true,
-  }));
+const app = express();
+const server = createServer(app);
 
-  // Body parsing
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true }));
-
-  // Logging
-  app.use(morgan('combined'));
-  app.use(requestLogger);
-
-  // Health check endpoint
-  app.get('/health', (req, res) => {
-    res.json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0',
-      service: 'canunited-backend'
-    });
+// Health check endpoint - FIRST, before anything else
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    service: 'canunited-backend',
+    port: PORT
   });
+});
 
-  // Connect to databases
-  try {
-    await connectDatabase();
-    console.log('✅ Connected to PostgreSQL');
-  } catch (error) {
-    console.error('❌ Failed to connect to PostgreSQL:', error);
-  }
+// Basic middleware
+app.use(helmet());
+app.use(compression());
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(morgan('combined'));
 
-  try {
-    await connectRedis();
-    console.log('✅ Connected to Redis');
-  } catch (error) {
-    console.error('⚠️ Redis connection failed, continuing without cache:', error);
-  }
-
-  // Setup API routes
-  setupRoutes(app);
-
-  // Setup WebSocket
-  const wss = new WebSocketServer({ server, path: '/ws' });
-  setupWebSocket(wss);
-
-  // Error handling
-  app.use(errorHandler);
-
-  // 404 handler
-  app.use((req, res) => {
-    res.status(404).json({
-      success: false,
-      error: {
-        code: 'NOT_FOUND',
-        message: `Route ${req.method} ${req.path} not found`
-      }
-    });
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'CANUnited Asset Manager API',
+    version: '1.0.0',
+    health: '/health'
   });
+});
 
-  // Start server - bind to 0.0.0.0 for Railway/Docker
-  server.listen(config.port, '0.0.0.0', () => {
-    console.log(`
+// API placeholder
+app.get('/api/v1/status', (req, res) => {
+  res.json({ status: 'ok', mode: 'demo' });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: { code: 'NOT_FOUND', message: `Route ${req.method} ${req.path} not found` }
+  });
+});
+
+// Start server
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`
 ╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
 ║   🏭 CANUnited Asset Manager Backend                      ║
-║                                                           ║
-║   Server running on http://0.0.0.0:${config.port}                ║
-║   WebSocket on ws://0.0.0.0:${config.port}/ws                    ║
-║   Environment: ${config.nodeEnv.padEnd(40)}║
-║   PORT: ${String(config.port).padEnd(48)}║
-║                                                           ║
+║   Server running on http://0.0.0.0:${PORT}                       ║
+║   Environment: ${NODE_ENV}                                      ║
 ╚═══════════════════════════════════════════════════════════╝
-    `);
-  });
+  `);
+});
 
-  // Graceful shutdown
-  process.on('SIGTERM', () => {
-    console.log('SIGTERM received, shutting down gracefully...');
-    server.close(() => {
-      console.log('Server closed');
-      process.exit(0);
-    });
-  });
-}
-
-bootstrap().catch(console.error);
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down...');
+  server.close(() => process.exit(0));
+});
