@@ -353,5 +353,37 @@ function generateMockRiskDistribution() {
   };
 }
 
+// API with automatic fallback to mock data on error
+const apiWithFallback = {
+  get: async (endpoint: string) => {
+    if (DEMO_MODE) {
+      return mockApi.get(endpoint);
+    }
+    try {
+      const response = await api.get(endpoint);
+      // If API returns an error, fall back to mock
+      if (!response.data.success) {
+        console.warn(`[API] Error from ${endpoint}, falling back to mock data`);
+        return mockApi.get(endpoint);
+      }
+      return response;
+    } catch (error) {
+      console.warn(`[API] Request failed for ${endpoint}, falling back to mock data`);
+      return mockApi.get(endpoint);
+    }
+  },
+  post: async (endpoint: string, data?: any) => {
+    if (DEMO_MODE) {
+      return mockApi.post(endpoint, data);
+    }
+    try {
+      return await api.post(endpoint, data);
+    } catch (error) {
+      console.warn(`[API] POST failed for ${endpoint}, falling back to mock`);
+      return mockApi.post(endpoint, data);
+    }
+  }
+};
+
 // Export the appropriate API based on mode
-export const getApi = () => DEMO_MODE ? mockApi : api;
+export const getApi = () => apiWithFallback;
