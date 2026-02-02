@@ -35,8 +35,8 @@ jobs:
         working-directory: packages/frontend
         run: npm run build
         env:
-          VITE_API_URL: ""
-          VITE_DEMO_MODE: "true"
+          VITE_API_URL: "https://canunited-asset-manager-production.up.railway.app/api/v1"
+          VITE_DEMO_MODE: "false"
           GITHUB_PAGES: "true"
 
       - name: Setup Pages
