@@ -5,8 +5,11 @@
   "main": "./src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:db": "tsx watch src/server.ts",
     "build": "echo 'Using tsx runtime, no build needed'",
-    "start": "tsx src/index.ts",
+    "start": "tsx src/bootstrap.ts",
+    "start:demo": "tsx src/index.ts",
+    "start:db": "tsx src/server.ts",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts"
   },

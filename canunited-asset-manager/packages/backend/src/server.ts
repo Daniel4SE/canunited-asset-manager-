@@ -1,0 +1,142 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
+import { config } from './config/index.js';
+import { connectDatabase, pool } from './db/connection.js';
+import { setupRoutes } from './routes/index.js';
+import { connectRedis, redisClient } from './cache/redis.js';
+
+const app = express();
+const server = createServer(app);
+
+// Check for database availability
+const hasDatabase = !!process.env.DATABASE_URL;
+const hasRedis = !!process.env.REDIS_URL;
+
+console.log('🚀 Starting CANUnited Backend...');
+console.log(`📌 PORT: ${config.port}`);
+console.log(`📌 NODE_ENV: ${config.nodeEnv}`);
+console.log(`📌 DATABASE: ${hasDatabase ? '✓ PostgreSQL' : '✗ Demo mode (in-memory)'}`);
+console.log(`📌 REDIS: ${hasRedis ? '✓ Connected' : '✗ Not configured'}`);
+
+// Health check - always available
+app.get('/health', async (req, res) => {
+  let dbStatus = 'not configured';
+  if (hasDatabase) {
+    try {
+      await pool.query('SELECT 1');
+      dbStatus = 'connected';
+    } catch {
+      dbStatus = 'error';
+    }
+  }
+
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    service: 'canunited-backend',
+    mode: hasDatabase ? 'production' : 'demo',
+    database: dbStatus,
+    redis: hasRedis ? 'configured' : 'not configured',
+  });
+});
+
+// Middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for API
+}));
+app.use(compression());
+app.use(cors({
+  origin: config.corsOrigin === '*' ? true : config.corsOrigin.split(','),
+  credentials: true,
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('combined'));
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'CANUnited Asset Manager API',
+    version: '1.0.0',
+    mode: hasDatabase ? 'production' : 'demo',
+    documentation: '/api/v1',
+  });
+});
+
+// Setup routes
+setupRoutes(app);
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: { code: 'NOT_FOUND', message: `Route ${req.method} ${req.path} not found` },
+  });
+});
+
+// Error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: {
+      code: err.code || 'INTERNAL_ERROR',
+      message: config.nodeEnv === 'production' ? 'An unexpected error occurred' : err.message,
+    },
+  });
+});
+
+// WebSocket setup
+const wss = new WebSocketServer({ server, path: '/ws' });
+wss.on('connection', (ws) => {
+  console.log('WebSocket client connected');
+  ws.send(JSON.stringify({ type: 'connection', status: 'connected' }));
+  ws.on('close', () => console.log('WebSocket client disconnected'));
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down...');
+  await pool.end();
+  if (redisClient) await redisClient.quit();
+  server.close(() => process.exit(0));
+});
+
+// Start server
+async function start() {
+  try {
+    // Connect to database if available
+    if (hasDatabase) {
+      await connectDatabase();
+      console.log('✅ Database connected');
+    }
+
+    // Connect to Redis if available
+    if (hasRedis) {
+      await connectRedis();
+      console.log('✅ Redis connected');
+    }
+
+    server.listen(config.port, '0.0.0.0', () => {
+      console.log(`
+╔═══════════════════════════════════════════════════════════╗
+║   🏭 CANUnited Asset Manager Backend                      ║
+║   Server running on http://0.0.0.0:${config.port}                   ║
+║   Environment: ${config.nodeEnv.padEnd(40)}║
+║   Mode: ${hasDatabase ? 'Production (PostgreSQL)' : 'Demo (in-memory)    '}              ║
+╚═══════════════════════════════════════════════════════════╝
+      `);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+start();
