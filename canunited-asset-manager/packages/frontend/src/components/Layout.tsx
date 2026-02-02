@@ -70,7 +70,12 @@ export default function Layout() {
   };
 
   // Filter navigation based on permissions
+  // In demo mode, show all navigation items
+  const isDemoMode = !import.meta.env.VITE_API_URL || import.meta.env.VITE_DEMO_MODE === 'true';
   const filteredNavigation = navigation.filter((item) => {
+    // Show all items in demo mode
+    if (isDemoMode) return true;
+    // Otherwise check permissions
     if (item.permission && !hasPermission(item.permission)) return false;
     if (item.roles && !hasRole(item.roles)) return false;
     return true;
@@ -143,7 +148,7 @@ export default function Layout() {
 
           {/* User section */}
           <div className="p-3 border-t border-slate-700/50">
-            {hasPermission('settings:view') && (
+            {(isDemoMode || hasPermission('settings:view')) && (
               <NavLink
                 to="/settings"
                 className={({ isActive }) =>
