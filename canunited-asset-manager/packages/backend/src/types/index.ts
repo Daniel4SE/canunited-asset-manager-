@@ -47,13 +47,17 @@ export type MaintenanceStatus = 'scheduled' | 'in_progress' | 'completed' | 'can
 
 export type HealthStatus = 'healthy' | 'warning' | 'critical' | 'unknown' | 'offline';
 
-export type WSEventType =
-  | 'sensor_reading'
-  | 'alert_created'
-  | 'alert_updated'
-  | 'asset_health_updated'
-  | 'maintenance_status_changed'
-  | 'connection_status';
+export const WSEventType = {
+  SENSOR_READING: 'sensor_reading',
+  ALERT_CREATED: 'alert_created',
+  ALERT_UPDATED: 'alert_updated',
+  ASSET_HEALTH_UPDATED: 'asset_health_updated',
+  MAINTENANCE_STATUS_CHANGED: 'maintenance_status_changed',
+  CONNECTION_STATUS: 'connection_status',
+  GATEWAY_STATUS: 'gateway_status',
+} as const;
+
+export type WSEventTypeValue = typeof WSEventType[keyof typeof WSEventType];
 
 export interface WSMessage {
   type: WSEventType;

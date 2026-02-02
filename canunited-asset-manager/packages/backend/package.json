@@ -2,11 +2,11 @@
   "name": "@canunited/backend",
   "version": "1.0.0",
   "description": "CANUnited Asset Manager Backend API",
-  "main": "./dist/index.js",
+  "main": "./src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
+    "build": "echo 'Using tsx runtime, no build needed'",
+    "start": "tsx src/index.ts",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts"
   },
@@ -26,6 +26,8 @@
     "pg": "^8.11.3",
     "qrcode": "^1.5.3",
     "redis": "^4.6.12",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.2",
     "uuid": "^9.0.1",
     "ws": "^8.16.0",
     "xlsx": "^0.18.5",
@@ -42,8 +44,6 @@
     "@types/pg": "^8.10.9",
     "@types/qrcode": "^1.5.5",
     "@types/uuid": "^9.0.7",
-    "@types/ws": "^8.5.10",
-    "tsx": "^4.7.0",
-    "typescript": "^5.3.2"
+    "@types/ws": "^8.5.10"
   }
 }
