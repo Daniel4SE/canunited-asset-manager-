@@ -12,6 +12,8 @@ import { dashboardRoutes } from './dashboard.routes.js';
 import { reportsRoutes } from './reports.routes.js';
 import { predictionRoutes } from './prediction.routes.js';
 import { integrationRoutes } from './integration.routes.js';
+import { userRoutes } from './user.routes.js';
+import { auditRoutes } from './audit.routes.js';
 
 export function setupRoutes(app: Express): void {
   const apiPrefix = '/api/v1';
@@ -32,6 +34,8 @@ export function setupRoutes(app: Express): void {
   app.use(`${apiPrefix}/reports`, reportsRoutes);
   app.use(`${apiPrefix}/predictions`, predictionRoutes);
   app.use(`${apiPrefix}/integrations`, integrationRoutes);
+  app.use(`${apiPrefix}/users`, userRoutes);
+  app.use(`${apiPrefix}/audit`, auditRoutes);
 
   console.log('✅ API routes initialized');
 }

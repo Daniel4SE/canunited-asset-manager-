@@ -56,14 +56,7 @@ const vendorColors: Record<string, string> = {
   generic: '#6366f1',
 };
 
-// Mock team members for assignment
-const teamMembers = [
-  { id: 'u1', name: 'John Smith', role: 'Field Technician', avatar: 'JS' },
-  { id: 'u2', name: 'Jane Doe', role: 'Reliability Engineer', avatar: 'JD' },
-  { id: 'u3', name: 'Mike Johnson', role: 'OEM Service Partner', avatar: 'MJ' },
-  { id: 'u4', name: 'Sarah Wilson', role: 'Asset Manager', avatar: 'SW' },
-  { id: 'u5', name: 'Tom Brown', role: 'Field Technician', avatar: 'TB' },
-];
+// Team members will be fetched from API
 
 // Mock assets for task creation
 const mockAssets = [
@@ -205,6 +198,16 @@ export default function MaintenancePage() {
       return response.data;
     },
   });
+
+  // Fetch team members for assignment
+  const { data: teamMembersData } = useQuery({
+    queryKey: ['teamMembers'],
+    queryFn: async () => {
+      const response = await getApi().get(endpoints.usersAssignable);
+      return response.data.data;
+    },
+  });
+  const teamMembers = teamMembersData || [];
 
   // Create task mutation
   const createTaskMutation = useMutation({
@@ -726,7 +729,7 @@ export default function MaintenancePage() {
                                   <option value="">-- Select Assignee --</option>
                                   {teamMembers.map((member) => (
                                     <option key={member.id} value={member.id}>
-                                      {member.name} ({member.role})
+                                      {member.name} ({member.roleLabel || member.role})
                                     </option>
                                   ))}
                                 </select>
@@ -806,7 +809,7 @@ export default function MaintenancePage() {
                                     {teamMembers.find((m) => m.id === task.assignedTo)?.name || task.assignedToName}
                                   </p>
                                   <p className="text-sm text-slate-400">
-                                    {teamMembers.find((m) => m.id === task.assignedTo)?.role}
+                                    {teamMembers.find((m) => m.id === task.assignedTo)?.roleLabel || teamMembers.find((m) => m.id === task.assignedTo)?.role}
                                   </p>
                                 </div>
                               </div>
@@ -960,7 +963,7 @@ export default function MaintenancePage() {
                       <option value="">-- Select Assignee --</option>
                       {teamMembers.map((member) => (
                         <option key={member.id} value={member.id}>
-                          {member.name} ({member.role})
+                          {member.name} ({member.roleLabel || member.role})
                         </option>
                       ))}
                     </select>

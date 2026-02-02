@@ -210,6 +210,78 @@ export const mockCmmsIntegrations = [
   },
 ];
 
+// Team members for task assignment
+export const mockTeamMembers = [
+  { id: 'user-001', name: 'System Admin', role: 'administrator', roleLabel: 'Administrator', avatar: 'SA' },
+  { id: 'user-002', name: 'John Smith', role: 'technician', roleLabel: 'Technician', avatar: 'JS' },
+  { id: 'user-003', name: 'Jane Doe', role: 'reliability_engineer', roleLabel: 'Reliability Engineer', avatar: 'JD' },
+  { id: 'user-004', name: 'Mike Johnson', role: 'field_technician', roleLabel: 'Field Technician', avatar: 'MJ' },
+  { id: 'user-005', name: 'Sarah Wilson', role: 'asset_manager', roleLabel: 'Asset Manager', avatar: 'SW' },
+  { id: 'user-006', name: 'Tom Brown', role: 'technician', roleLabel: 'Technician', avatar: 'TB' },
+  { id: 'user-007', name: 'Lisa Chen', role: 'analyst', roleLabel: 'Analyst', avatar: 'LC' },
+];
+
+// Current user info
+export const mockCurrentUser = {
+  id: 'user-001',
+  email: 'admin@canunited.com',
+  name: 'System Admin',
+  firstName: 'System',
+  lastName: 'Admin',
+  role: 'administrator',
+  roleLabel: 'Administrator',
+  mfaEnabled: false,
+  isActive: true,
+};
+
+// Audit logs for history tracking
+export const mockAuditLogs = [
+  {
+    id: 'audit-001',
+    action: 'maintenance.created',
+    actionLabel: 'Task Created',
+    entityType: 'maintenance_task',
+    entityId: 'task-1',
+    userName: 'System Admin',
+    oldValues: null,
+    newValues: { title: 'Annual Breaker Inspection', priority: 'medium' },
+    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+  },
+  {
+    id: 'audit-002',
+    action: 'maintenance.assigned',
+    actionLabel: 'Task Assigned',
+    entityType: 'maintenance_task',
+    entityId: 'task-1',
+    userName: 'System Admin',
+    oldValues: { assignedTo: null },
+    newValues: { assignedTo: 'John Smith' },
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+  },
+  {
+    id: 'audit-003',
+    action: 'maintenance.status_changed',
+    actionLabel: 'Status Changed',
+    entityType: 'maintenance_task',
+    entityId: 'task-2',
+    userName: 'John Smith',
+    oldValues: { status: 'scheduled' },
+    newValues: { status: 'in_progress' },
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'audit-004',
+    action: 'maintenance.completed',
+    actionLabel: 'Task Completed',
+    entityType: 'maintenance_task',
+    entityId: 'task-3',
+    userName: 'Mike Johnson',
+    oldValues: { status: 'in_progress' },
+    newValues: { status: 'completed', actualDurationHours: 4.5 },
+    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+  },
+];
+
 // Check if we're in mock mode (no backend available)
 export const isMockMode = (): boolean => {
   return true; // Always use mock mode for now

@@ -854,6 +854,76 @@ app.delete('/api/v1/maintenance/:id', (req, res) => {
   }
 });
 
+// ============= Users =============
+const mockUsers = [
+  { id: 'user-001', email: 'admin@canunited.com', firstName: 'System', lastName: 'Admin', role: 'administrator', isActive: true },
+  { id: 'user-002', email: 'john.smith@canunited.com', firstName: 'John', lastName: 'Smith', role: 'technician', isActive: true },
+  { id: 'user-003', email: 'jane.doe@canunited.com', firstName: 'Jane', lastName: 'Doe', role: 'reliability_engineer', isActive: true },
+  { id: 'user-004', email: 'mike.johnson@canunited.com', firstName: 'Mike', lastName: 'Johnson', role: 'field_technician', isActive: true },
+  { id: 'user-005', email: 'sarah.wilson@canunited.com', firstName: 'Sarah', lastName: 'Wilson', role: 'asset_manager', isActive: true },
+  { id: 'user-006', email: 'tom.brown@canunited.com', firstName: 'Tom', lastName: 'Brown', role: 'technician', isActive: true },
+  { id: 'user-007', email: 'lisa.chen@canunited.com', firstName: 'Lisa', lastName: 'Chen', role: 'analyst', isActive: true },
+];
+
+const roleLabels: Record<string, string> = {
+  administrator: 'Administrator',
+  analyst: 'Analyst',
+  technician: 'Technician',
+  viewer: 'Viewer',
+  asset_manager: 'Asset Manager',
+  field_technician: 'Field Technician',
+  reliability_engineer: 'Reliability Engineer',
+};
+
+app.get('/api/v1/users', (req, res) => {
+  res.json({
+    success: true,
+    data: mockUsers.map(u => ({
+      id: u.id,
+      email: u.email,
+      name: `${u.firstName} ${u.lastName}`,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      role: u.role,
+      roleLabel: roleLabels[u.role] || u.role,
+      avatar: `${u.firstName[0]}${u.lastName[0]}`,
+      isActive: u.isActive,
+    })),
+  });
+});
+
+app.get('/api/v1/users/assignable', (req, res) => {
+  const assignableRoles = ['administrator', 'technician', 'asset_manager', 'field_technician', 'reliability_engineer'];
+  const assignable = mockUsers.filter(u => assignableRoles.includes(u.role) && u.isActive);
+  res.json({
+    success: true,
+    data: assignable.map(u => ({
+      id: u.id,
+      name: `${u.firstName} ${u.lastName}`,
+      role: u.role,
+      roleLabel: roleLabels[u.role] || u.role,
+      avatar: `${u.firstName[0]}${u.lastName[0]}`,
+    })),
+  });
+});
+
+app.get('/api/v1/users/me', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      id: 'user-001',
+      email: 'admin@canunited.com',
+      name: 'System Admin',
+      firstName: 'System',
+      lastName: 'Admin',
+      role: 'administrator',
+      roleLabel: 'Administrator',
+      mfaEnabled: false,
+      isActive: true,
+    },
+  });
+});
+
 // ============= Analytics =============
 app.get('/api/v1/analytics/vendor-comparison', (req, res) => {
   res.json({ success: true, data: mockVendorComparison });
@@ -922,6 +992,67 @@ app.post('/api/v1/integrations/cmms/:id/sync', (req, res) => {
   } else {
     res.status(404).json({ success: false, error: { message: 'Integration not found' } });
   }
+});
+
+// ============= Audit Logs =============
+const auditStore = new Map<string, any[]>();
+
+// Add mock audit history
+function addAuditLog(entityType: string, entityId: string, action: string, userName: string, oldValues?: any, newValues?: any) {
+  const key = `${entityType}:${entityId}`;
+  if (!auditStore.has(key)) {
+    auditStore.set(key, []);
+  }
+  auditStore.get(key)!.push({
+    id: generateId(),
+    action,
+    actionLabel: formatActionLabel(action),
+    entityType,
+    entityId,
+    userName,
+    oldValues,
+    newValues,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+function formatActionLabel(action: string): string {
+  const labels: Record<string, string> = {
+    'maintenance.created': 'Task Created',
+    'maintenance.status_changed': 'Status Changed',
+    'maintenance.completed': 'Task Completed',
+    'maintenance.assigned': 'Task Assigned',
+    'maintenance.deleted': 'Task Deleted',
+  };
+  return labels[action] || action;
+}
+
+// Initialize some mock audit history
+addAuditLog('maintenance_task', 'task-1', 'maintenance.created', 'System Admin', null, { title: 'Annual Breaker Inspection', priority: 'medium' });
+addAuditLog('maintenance_task', 'task-1', 'maintenance.assigned', 'System Admin', null, { assignedTo: 'John Smith' });
+addAuditLog('maintenance_task', 'task-2', 'maintenance.created', 'Sarah Wilson', null, { title: 'Thermal Scan Required', priority: 'high' });
+addAuditLog('maintenance_task', 'task-2', 'maintenance.status_changed', 'John Smith', { status: 'scheduled' }, { status: 'in_progress' });
+
+app.get('/api/v1/audit/entity/:entityType/:entityId', (req, res) => {
+  const { entityType, entityId } = req.params;
+  const key = `${entityType}:${entityId}`;
+  const logs = auditStore.get(key) || [];
+  res.json({
+    success: true,
+    data: logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    meta: { total: logs.length, page: 1, perPage: 20, totalPages: 1 },
+  });
+});
+
+app.get('/api/v1/audit', (req, res) => {
+  const allLogs: any[] = [];
+  auditStore.forEach((logs) => allLogs.push(...logs));
+  allLogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  res.json({
+    success: true,
+    data: allLogs.slice(0, 50),
+    meta: { total: allLogs.length, page: 1, perPage: 50, totalPages: 1 },
+  });
 });
 
 // 404 handler

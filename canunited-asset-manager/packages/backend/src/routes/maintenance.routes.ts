@@ -5,6 +5,7 @@ import { query } from '../db/connection.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { notFound, badRequest } from '../middleware/errorHandler.js';
 import { UserRole, MaintenanceStatus } from '../types/index.js';
+import { logAudit, AuditActions } from '../services/audit.service.js';
 
 export const maintenanceRoutes = Router();
 
@@ -214,6 +215,18 @@ maintenanceRoutes.post('/', authorize(UserRole.ADMIN, UserRole.ASSET_MANAGER, Us
       ]
     );
 
+    // Log audit entry
+    await logAudit({
+      tenantId: req.user!.tenantId,
+      userId: req.user!.userId,
+      action: AuditActions.MAINTENANCE_CREATED,
+      entityType: 'maintenance_task',
+      entityId: id,
+      newValues: { title: data.title, assetId: data.assetId, assignedTo: data.assignedTo, priority: data.priority },
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (error) {
     next(error);
@@ -229,6 +242,13 @@ maintenanceRoutes.patch('/:id/status', async (req: Request, res: Response, next:
     if (!Object.values(MaintenanceStatus).includes(status)) {
       badRequest('Invalid status');
     }
+
+    // Get old status for audit log
+    const oldTask = await query<{ status: string; title: string }>(
+      'SELECT status, title FROM maintenance_tasks WHERE id = $1 AND organization_id = $2',
+      [id, req.user!.organizationId]
+    );
+    const oldStatus = oldTask.rows[0]?.status;
 
     const updates: string[] = ['status = $1', 'updated_at = NOW()'];
     const params: unknown[] = [status];
@@ -258,6 +278,20 @@ maintenanceRoutes.patch('/:id/status', async (req: Request, res: Response, next:
     if (result.rows.length === 0) {
       notFound('Maintenance task');
     }
+
+    // Log audit entry
+    const action = status === 'completed' ? AuditActions.MAINTENANCE_COMPLETED : AuditActions.MAINTENANCE_STATUS_CHANGED;
+    await logAudit({
+      tenantId: req.user!.tenantId,
+      userId: req.user!.userId,
+      action,
+      entityType: 'maintenance_task',
+      entityId: id,
+      oldValues: { status: oldStatus },
+      newValues: { status, notes, actualDurationHours },
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+    });
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
@@ -312,6 +346,12 @@ maintenanceRoutes.delete('/:id', authorize(UserRole.ADMIN), async (req: Request,
   try {
     const { id } = req.params;
 
+    // Get task info for audit log before deleting
+    const taskInfo = await query<{ title: string; status: string }>(
+      'SELECT title, status FROM maintenance_tasks WHERE id = $1 AND organization_id = $2',
+      [id, req.user!.organizationId]
+    );
+
     const result = await query(
       'DELETE FROM maintenance_tasks WHERE id = $1 AND organization_id = $2 RETURNING id',
       [id, req.user!.organizationId]
@@ -320,6 +360,18 @@ maintenanceRoutes.delete('/:id', authorize(UserRole.ADMIN), async (req: Request,
     if (result.rows.length === 0) {
       notFound('Maintenance task');
     }
+
+    // Log audit entry
+    await logAudit({
+      tenantId: req.user!.tenantId,
+      userId: req.user!.userId,
+      action: AuditActions.MAINTENANCE_DELETED,
+      entityType: 'maintenance_task',
+      entityId: id,
+      oldValues: taskInfo.rows[0] ? { title: taskInfo.rows[0].title, status: taskInfo.rows[0].status } : undefined,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+    });
 
     res.json({ success: true, data: { id } });
   } catch (error) {

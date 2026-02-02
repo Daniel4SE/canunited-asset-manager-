@@ -105,6 +105,15 @@ export const endpoints = {
   cmmsIntegrations: '/integrations/cmms',
   cmmsIntegration: (id: string) => `/integrations/cmms/${id}`,
   cmmsSync: (id: string) => `/integrations/cmms/${id}/sync`,
+
+  // Users
+  users: '/users',
+  usersAssignable: '/users/assignable',
+  userMe: '/users/me',
+
+  // Audit
+  auditLogs: '/audit',
+  auditEntity: (entityType: string, entityId: string) => `/audit/entity/${entityType}/${entityId}`,
 };
 
 // Mock API wrapper for demo mode
@@ -175,6 +184,18 @@ export const mockApi = {
     }
     if (endpoint === '/integrations/cmms') {
       return { data: { data: mockData.mockCmmsIntegrations } };
+    }
+    if (endpoint === '/users' || endpoint === '/users/assignable') {
+      return { data: { data: mockData.mockTeamMembers } };
+    }
+    if (endpoint === '/users/me') {
+      return { data: { data: mockData.mockCurrentUser } };
+    }
+    if (endpoint.startsWith('/audit/entity/')) {
+      return { data: { data: mockData.mockAuditLogs, meta: { total: mockData.mockAuditLogs.length, page: 1, perPage: 20, totalPages: 1 } } };
+    }
+    if (endpoint === '/audit') {
+      return { data: { data: mockData.mockAuditLogs, meta: { total: mockData.mockAuditLogs.length, page: 1, perPage: 50, totalPages: 1 } } };
     }
 
     // Default empty response
