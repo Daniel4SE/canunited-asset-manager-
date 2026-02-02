@@ -12,6 +12,7 @@ import { config } from './config/index.js';
 import { connectDatabase, pool } from './db/connection.js';
 import { setupRoutes } from './routes/index.js';
 import { connectRedis, redisClient } from './cache/redis.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -87,18 +88,7 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
-  // Support both err.statusCode (AppError) and err.status (other errors)
-  const statusCode = err.statusCode || err.status || 500;
-  res.status(statusCode).json({
-    success: false,
-    error: {
-      code: err.code || 'INTERNAL_ERROR',
-      message: config.nodeEnv === 'production' ? 'An unexpected error occurred' : err.message,
-    },
-  });
-});
+app.use(errorHandler);
 
 // WebSocket setup
 const wss = new WebSocketServer({ server, path: '/ws' });
