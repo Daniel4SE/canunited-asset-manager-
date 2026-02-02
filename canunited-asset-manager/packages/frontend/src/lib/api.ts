@@ -3,8 +3,8 @@ import * as mockData from './mockData';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
-// Demo mode flag
-const DEMO_MODE = true;
+// Demo mode - automatically disabled when real API URL is provided
+const DEMO_MODE = !import.meta.env.VITE_API_URL || import.meta.env.VITE_DEMO_MODE === 'true';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

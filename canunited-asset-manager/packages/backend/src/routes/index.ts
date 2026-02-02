@@ -1,5 +1,6 @@
 import { Express } from 'express';
 import { authRoutes } from './auth.routes.js';
+import { ssoRoutes } from './sso.routes.js';
 import { assetRoutes } from './asset.routes.js';
 import { siteRoutes } from './site.routes.js';
 import { sensorRoutes } from './sensor.routes.js';
@@ -14,9 +15,10 @@ import { integrationRoutes } from './integration.routes.js';
 
 export function setupRoutes(app: Express): void {
   const apiPrefix = '/api/v1';
-  
+
   // Public routes
   app.use(`${apiPrefix}/auth`, authRoutes);
+  app.use(`${apiPrefix}/auth/sso`, ssoRoutes);
   
   // Protected routes
   app.use(`${apiPrefix}/sites`, siteRoutes);

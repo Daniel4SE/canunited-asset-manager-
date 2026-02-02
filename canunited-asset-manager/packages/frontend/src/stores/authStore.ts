@@ -134,8 +134,8 @@ const demoUsers: Record<string, User> = {
   },
 };
 
-// Demo mode - use mock login when backend is unavailable
-const DEMO_MODE = true;
+// Demo mode - automatically disabled when real API URL is provided
+const DEMO_MODE = !import.meta.env.VITE_API_URL || import.meta.env.VITE_DEMO_MODE === 'true';
 
 export const useAuthStore = create<AuthState>()(
   persist(
