@@ -4,7 +4,7 @@ export const mockUser = {
   id: 'mock-user-001',
   email: 'admin@canunited.demo',
   name: 'System Admin',
-  role: 'admin',
+  role: 'administrator',
   organizationId: 'org-001',
 };
 
