@@ -44,7 +44,8 @@ maintenanceRoutes.get('/', async (req: Request, res: Response, next: NextFunctio
       perPage = '20'
     } = req.query;
 
-    let whereConditions = ['m.organization_id = $1'];
+    // Use tenant_id as fallback for organization_id
+    let whereConditions = ['(m.organization_id = $1 OR m.tenant_id = $1)'];
     const params: unknown[] = [req.user!.organizationId];
     let paramIndex = 2;
 

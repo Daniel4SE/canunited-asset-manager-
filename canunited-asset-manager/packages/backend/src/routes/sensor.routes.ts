@@ -27,7 +27,8 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { siteId, sensorType, vendor, isOnline } = req.query;
 
-    let whereConditions = ['s.organization_id = $1'];
+    // Use tenant_id as fallback for organization_id
+    let whereConditions = ['(s.organization_id = $1 OR s.tenant_id = $1)'];
     const params: unknown[] = [req.user!.organizationId];
     let paramIndex = 2;
 
@@ -49,7 +50,10 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
     }
 
     const result = await query(
-      `SELECT s.*, a.name as assigned_asset_name, g.name as gateway_name
+      `SELECT s.id, s.site_id, s.name, s.sensor_type, s.vendor, s.model,
+              s.serial_number, s.protocol, s.gateway_id, s.is_online,
+              s.battery_level, s.signal_strength, s.last_reading_at, s.created_at,
+              s.asset_id, a.name as assigned_asset_name, g.name as gateway_name
        FROM sensors s
        LEFT JOIN assets a ON s.asset_id = a.id
        LEFT JOIN gateways g ON s.gateway_id = g.id
