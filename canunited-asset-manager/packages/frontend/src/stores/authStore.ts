@@ -298,15 +298,18 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        // Demo mode
-        if (DEMO_MODE && accessToken === 'demo-access-token') {
+        // Demo mode - skip real API entirely
+        if (DEMO_MODE) {
           const user = get().user;
           if (user) {
             set({ isAuthenticated: true, isLoading: false });
-            return;
+          } else {
+            set({ isAuthenticated: false, isLoading: false });
           }
+          return;
         }
 
+        // Production mode - call real API
         try {
           const response = await api.get('/auth/me');
           set({
