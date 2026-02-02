@@ -24,6 +24,7 @@ export interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  hasHydrated: boolean;
   error: string | null;
   mfaPending: boolean;
   mfaUserId: string | null;
@@ -35,6 +36,7 @@ export interface AuthState {
   refreshAccessToken: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
   hasRole: (roles: UserRole | UserRole[]) => boolean;
+  setHasHydrated: (value: boolean) => void;
 }
 
 // Role-based permissions
@@ -145,10 +147,13 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
+      hasHydrated: false,
       error: null,
       mfaPending: false,
       mfaUserId: null,
       mfaTempToken: null,
+
+      setHasHydrated: (value: boolean) => set({ hasHydrated: value }),
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
@@ -381,6 +386,8 @@ export const useAuthStore = create<AuthState>()(
           if (state.accessToken && state.user) {
             state.isAuthenticated = true;
           }
+          // Mark as hydrated
+          state.setHasHydrated(true);
           // Then verify with backend
           state.checkAuth();
         }
