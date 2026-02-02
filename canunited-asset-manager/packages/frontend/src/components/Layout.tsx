@@ -47,8 +47,19 @@ const navigation: NavItem[] = [
 ];
 
 export default function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Persist sidebar state in localStorage
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    const stored = localStorage.getItem('canunited-sidebar');
+    return stored !== null ? JSON.parse(stored) : true; // Default to open
+  });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // Save sidebar state when it changes
+  const toggleSidebar = () => {
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+    localStorage.setItem('canunited-sidebar', JSON.stringify(newState));
+  };
   const { user, logout, hasPermission, hasRole } = useAuthStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -93,7 +104,7 @@ export default function Layout() {
               )}
             </motion.div>
             <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+              onClick={toggleSidebar}
               className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
             >
               {sidebarOpen ? <X className="w-5 h-5 text-slate-400" /> : <Menu className="w-5 h-5 text-slate-400" />}
