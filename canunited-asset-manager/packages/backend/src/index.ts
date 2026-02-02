@@ -15,7 +15,7 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const DATABASE_URL = process.env.DATABASE_URL;
 const REDIS_URL = process.env.REDIS_URL;
 
-console.log('🚀 Starting CANUnited Backend...');
+console.log('🚀 Starting CANUnited Backend v1.1.0...');
 console.log(`📌 PORT: ${PORT}`);
 console.log(`📌 NODE_ENV: ${NODE_ENV}`);
 console.log(`📌 DATABASE_URL: ${DATABASE_URL ? '✓ configured' : '✗ not set'}`);
