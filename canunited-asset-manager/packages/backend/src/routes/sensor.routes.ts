@@ -51,7 +51,7 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
     const result = await query(
       `SELECT s.*, a.name as assigned_asset_name, g.name as gateway_name
        FROM sensors s
-       LEFT JOIN assets a ON s.assigned_asset_id = a.id
+       LEFT JOIN assets a ON s.asset_id = a.id
        LEFT JOIN gateways g ON s.gateway_id = g.id
        WHERE ${whereConditions.join(' AND ')}
        ORDER BY s.name`,
@@ -71,10 +71,9 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
         protocol: row.protocol,
         gatewayId: row.gateway_id,
         gatewayName: row.gateway_name,
-        assignedAssetId: row.assigned_asset_id,
+        assignedAssetId: row.asset_id,
         assignedAssetName: row.assigned_asset_name,
         calibrationDate: row.calibration_date,
-        nextCalibration: row.next_calibration,
         batteryLevel: row.battery_level,
         signalStrength: row.signal_strength,
         isOnline: row.is_online,

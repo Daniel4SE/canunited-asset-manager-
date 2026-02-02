@@ -139,6 +139,14 @@ const demoUsers: Record<string, User> = {
 // Demo mode - automatically disabled when real API URL is provided
 const DEMO_MODE = !import.meta.env.VITE_API_URL || import.meta.env.VITE_DEMO_MODE === 'true';
 
+function setAuthHeader(token: string | null) {
+  if (token) {
+    api.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common.Authorization;
+  }
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -173,6 +181,7 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               error: null,
             });
+            setAuthHeader('demo-access-token');
             return {};
           }
 
@@ -191,6 +200,7 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               error: null,
             });
+            setAuthHeader('demo-access-token');
             return {};
           }
 
@@ -225,6 +235,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           });
+          setAuthHeader(data.accessToken);
           return {};
         } catch (error: any) {
           set({
@@ -262,6 +273,7 @@ export const useAuthStore = create<AuthState>()(
             mfaTempToken: null,
             error: null,
           });
+          setAuthHeader(data.accessToken);
         } catch (error: any) {
           set({
             isLoading: false,
@@ -289,6 +301,7 @@ export const useAuthStore = create<AuthState>()(
           mfaUserId: null,
           mfaTempToken: null,
         });
+        setAuthHeader(null);
       },
 
       checkAuth: async () => {
@@ -297,6 +310,7 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: false, isAuthenticated: false });
           return;
         }
+        setAuthHeader(accessToken);
 
         // Demo mode - skip real API entirely
         if (DEMO_MODE) {
@@ -351,6 +365,7 @@ export const useAuthStore = create<AuthState>()(
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
           });
+          setAuthHeader(data.accessToken);
         } catch (error) {
           set({
             user: null,
@@ -358,6 +373,7 @@ export const useAuthStore = create<AuthState>()(
             refreshToken: null,
             isAuthenticated: false,
           });
+          setAuthHeader(null);
           throw error;
         }
       },
@@ -388,6 +404,7 @@ export const useAuthStore = create<AuthState>()(
           // If we have a token and user, consider authenticated
           if (state.accessToken && state.user) {
             state.isAuthenticated = true;
+            setAuthHeader(state.accessToken);
           }
           // Mark as hydrated
           state.setHasHydrated(true);

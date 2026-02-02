@@ -146,6 +146,19 @@ async function runMigrations() {
     await pool.query(`
       ALTER TABLE audit_logs ALTER COLUMN tenant_id DROP NOT NULL;
     `);
+
+    // Add organization_id to sensors if missing (copy from tenant_id)
+    await pool.query(`
+      ALTER TABLE sensors ADD COLUMN IF NOT EXISTS organization_id UUID;
+      UPDATE sensors SET organization_id = tenant_id WHERE organization_id IS NULL;
+    `);
+
+    // Add organization_id to maintenance_tasks if missing
+    await pool.query(`
+      ALTER TABLE maintenance_tasks ADD COLUMN IF NOT EXISTS organization_id UUID;
+      UPDATE maintenance_tasks SET organization_id = tenant_id WHERE organization_id IS NULL;
+    `);
+
     console.log('✅ Migrations completed');
   } catch (error) {
     console.error('⚠️ Migration error (may be ignored):', error);
