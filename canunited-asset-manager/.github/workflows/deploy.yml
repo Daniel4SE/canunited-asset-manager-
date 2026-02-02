@@ -36,7 +36,7 @@ jobs:
         run: npm run build
         env:
           VITE_API_URL: "https://api.canunited.app/api/v1"
-          VITE_DEMO_MODE: "false"
+          VITE_DEMO_MODE: "true"
           GITHUB_PAGES: "true"
 
       - name: Setup Pages

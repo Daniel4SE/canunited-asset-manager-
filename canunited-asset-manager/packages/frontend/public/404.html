@@ -5,17 +5,25 @@
     <title>CANUnited Asset Manager</title>
     <script type="text/javascript">
       // GitHub Pages SPA redirect
-      // This script takes the current URL and converts the path into a query string
-      // so that index.html can restore the correct route
-      var pathSegmentsToKeep = 0;
-      var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
+      // Only redirect HTML routes, not static assets
+      var path = window.location.pathname;
+
+      // Don't redirect if it's a static asset
+      if (path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json)$/i)) {
+        // Let the 404 happen for missing assets
+        document.body.innerHTML = '<h1>404 - Asset Not Found</h1><p>The requested file was not found.</p><p><a href="/">Return to Home</a></p>';
+      } else {
+        // Redirect SPA routes to index.html with query string
+        var pathSegmentsToKeep = 0;
+        var l = window.location;
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+          l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
+        );
+      }
     </script>
   </head>
   <body>
