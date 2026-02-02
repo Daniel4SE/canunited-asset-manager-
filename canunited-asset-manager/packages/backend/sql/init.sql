@@ -414,6 +414,7 @@ CREATE TABLE audit_logs (
     action VARCHAR(50) NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     entity_id UUID,
+    details JSONB,
     old_values JSONB,
     new_values JSONB,
     ip_address INET,

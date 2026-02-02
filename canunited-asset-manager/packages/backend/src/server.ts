@@ -133,10 +133,26 @@ async function initDatabase() {
       console.log('✅ Database schema initialized with seed data');
     } else {
       console.log('✅ Database schema already exists');
+
+      // Run migrations for missing columns
+      await runMigrations();
     }
   } catch (error) {
     console.error('⚠️ Database initialization failed:', error);
     throw error;
+  }
+}
+
+// Run any pending migrations
+async function runMigrations() {
+  try {
+    // Add details column to audit_logs if missing
+    await pool.query(`
+      ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS details JSONB;
+    `);
+    console.log('✅ Migrations completed');
+  } catch (error) {
+    console.error('⚠️ Migration error (may be ignored):', error);
   }
 }
 
