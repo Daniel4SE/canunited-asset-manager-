@@ -207,7 +207,7 @@ const alertsStore = new Map([
 ]);
 
 // Sensors data store
-// Generate 106 sensors for demo mode
+// Generate 106 sensors for demo mode (deterministic, no random)
 function generateDemoSensors() {
   const sensorTypes = ['temperature', 'humidity', 'temperature_humidity', 'partial_discharge', 'vibration', 'current', 'voltage', 'power', 'gas', 'heat_tag'];
   const vendors = ['schneider', 'abb', 'siemens', 'bosch', 'eaton', 'generic'];
@@ -217,11 +217,15 @@ function generateDemoSensors() {
   const sensors = new Map();
   for (let i = 1; i <= 106; i++) {
     const id = `s${i}`;
-    const sensorType = sensorTypes[Math.floor(Math.random() * sensorTypes.length)];
-    const vendor = vendors[Math.floor(Math.random() * vendors.length)];
-    const protocol = protocols[Math.floor(Math.random() * protocols.length)];
-    const isOnline = Math.random() > 0.15;
+    // Use deterministic values based on index instead of random
+    const sensorType = sensorTypes[i % sensorTypes.length];
+    const vendor = vendors[i % vendors.length];
+    const protocol = protocols[i % protocols.length];
+    // 90 online, 16 offline (deterministic)
+    const isOnline = i <= 90;
     const hasBattery = ['zigbee', 'lorawan', 'bluetooth'].includes(protocol);
+    // 18 sensors with low battery (battery < 30)
+    const batteryLevel = hasBattery ? (i <= 18 ? 10 + i : 50 + (i % 50)) : null;
 
     sensors.set(id, {
       id,
@@ -231,8 +235,8 @@ function generateDemoSensors() {
       model: `${vendor.toUpperCase()}-${sensorType.substring(0, 3).toUpperCase()}-${100 + i}`,
       protocol,
       isOnline,
-      batteryLevel: hasBattery ? Math.floor(Math.random() * 100) : null,
-      signalStrength: isOnline ? 50 + Math.floor(Math.random() * 50) : 0,
+      batteryLevel,
+      signalStrength: isOnline ? 70 + (i % 30) : 0,
       assignedAssetId: `a${(i % 10) + 1}`,
       assignedAssetName: assetNames[i % assetNames.length],
     });

@@ -273,7 +273,7 @@ function generateMockHealthHistory() {
   return data;
 }
 
-// Helper to generate extended mock sensors for pagination demo
+// Helper to generate extended mock sensors for pagination demo (deterministic)
 function generateExtendedMockSensors() {
   const sensorTypes = ['temperature', 'humidity', 'temperature_humidity', 'partial_discharge', 'vibration', 'current', 'voltage', 'power', 'gas', 'heat_tag'];
   const vendors = ['schneider', 'abb', 'siemens', 'bosch', 'eaton', 'generic'];
@@ -282,11 +282,15 @@ function generateExtendedMockSensors() {
 
   const sensors = [];
   for (let i = 1; i <= 106; i++) {
-    const sensorType = sensorTypes[Math.floor(Math.random() * sensorTypes.length)];
-    const vendor = vendors[Math.floor(Math.random() * vendors.length)];
-    const protocol = protocols[Math.floor(Math.random() * protocols.length)];
-    const isOnline = Math.random() > 0.15; // 85% online
+    // Use deterministic values based on index instead of random
+    const sensorType = sensorTypes[i % sensorTypes.length];
+    const vendor = vendors[i % vendors.length];
+    const protocol = protocols[i % protocols.length];
+    // 90 online, 16 offline (deterministic)
+    const isOnline = i <= 90;
     const hasBattery = ['zigbee', 'lorawan', 'bluetooth'].includes(protocol);
+    // 18 sensors with low battery (battery < 30)
+    const batteryLevel = hasBattery ? (i <= 18 ? 10 + i : 50 + (i % 50)) : null;
 
     sensors.push({
       id: `sensor-${i.toString().padStart(3, '0')}`,
@@ -296,11 +300,11 @@ function generateExtendedMockSensors() {
       model: `${vendor.toUpperCase()}-${sensorType.substring(0, 3).toUpperCase()}-${100 + i}`,
       protocol,
       isOnline,
-      batteryLevel: hasBattery ? Math.floor(Math.random() * 100) : null,
-      signalStrength: isOnline ? 50 + Math.floor(Math.random() * 50) : 0,
-      assignedAssetName: `Asset ${Math.floor(Math.random() * 50) + 1}`,
-      siteName: sites[Math.floor(Math.random() * sites.length)],
-      lastReadingAt: new Date(Date.now() - Math.random() * 86400000 * 7).toISOString(),
+      batteryLevel,
+      signalStrength: isOnline ? 70 + (i % 30) : 0,
+      assignedAssetName: `Asset ${(i % 50) + 1}`,
+      siteName: sites[i % sites.length],
+      lastReadingAt: new Date(Date.now() - (i * 3600000)).toISOString(),
     });
   }
   return sensors;
