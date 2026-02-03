@@ -642,7 +642,14 @@ app.delete('/api/v1/assets/:id', (req, res) => {
 
 // ============= Sensors CRUD =============
 app.get('/api/v1/sensors', (req, res) => {
-  let sensors = Array.from(sensorsStore.values());
+  const allSensors = Array.from(sensorsStore.values());
+
+  // Calculate global stats before filtering
+  const onlineCount = allSensors.filter(s => s.isOnline).length;
+  const offlineCount = allSensors.filter(s => !s.isOnline).length;
+  const lowBatteryCount = allSensors.filter(s => s.batteryLevel !== null && s.batteryLevel < 30).length;
+
+  let sensors = [...allSensors];
 
   // Apply filters
   if (req.query.assetId) {
@@ -669,7 +676,11 @@ app.get('/api/v1/sensors', (req, res) => {
   res.json({
     success: true,
     data: paginatedSensors,
-    meta: { page, perPage, total, totalPages }
+    meta: {
+      page, perPage, total, totalPages,
+      onlineCount, offlineCount, lowBatteryCount,
+      totalSensors: allSensors.length
+    }
   });
 });
 

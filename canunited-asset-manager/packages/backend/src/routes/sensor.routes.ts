@@ -32,8 +32,27 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
     const perPageNum = Math.min(100, Math.max(1, parseInt(perPage as string) || 12));
     const offset = (pageNum - 1) * perPageNum;
 
+    const orgCondition = '(s.organization_id = $1 OR s.tenant_id = $1)';
+
+    // Get global stats (before any filters)
+    const statsResult = await query(
+      `SELECT
+        COUNT(*) as total_sensors,
+        COUNT(*) FILTER (WHERE s.is_online = true) as online_count,
+        COUNT(*) FILTER (WHERE s.is_online = false) as offline_count,
+        COUNT(*) FILTER (WHERE s.battery_level IS NOT NULL AND s.battery_level < 30) as low_battery_count
+       FROM sensors s
+       WHERE ${orgCondition}`,
+      [req.user!.organizationId]
+    );
+    const stats = statsResult.rows[0];
+    const totalSensors = parseInt(stats.total_sensors);
+    const onlineCount = parseInt(stats.online_count);
+    const offlineCount = parseInt(stats.offline_count);
+    const lowBatteryCount = parseInt(stats.low_battery_count);
+
     // Use both organization_id and tenant_id for compatibility
-    let whereConditions = ['(s.organization_id = $1 OR s.tenant_id = $1)'];
+    let whereConditions = [orgCondition];
     const params: unknown[] = [req.user!.organizationId];
     let paramIndex = 2;
 
@@ -56,7 +75,7 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
 
     const whereClause = whereConditions.join(' AND ');
 
-    // Get total count
+    // Get filtered count
     const countResult = await query(
       `SELECT COUNT(*) as total FROM sensors s WHERE ${whereClause}`,
       params.slice(0, paramIndex - 1)
@@ -104,7 +123,11 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
         page: pageNum,
         perPage: perPageNum,
         total,
-        totalPages
+        totalPages,
+        totalSensors,
+        onlineCount,
+        offlineCount,
+        lowBatteryCount
       }
     });
   } catch (error) {

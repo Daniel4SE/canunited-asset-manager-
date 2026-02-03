@@ -162,6 +162,12 @@ export const mockApi = {
       // Generate extended mock sensors for better demo experience
       const extendedSensors = generateExtendedMockSensors();
 
+      // Calculate global stats before filtering
+      const totalSensors = extendedSensors.length;
+      const onlineCount = extendedSensors.filter(s => s.isOnline).length;
+      const offlineCount = extendedSensors.filter(s => !s.isOnline).length;
+      const lowBatteryCount = extendedSensors.filter(s => s.batteryLevel !== null && s.batteryLevel < 30).length;
+
       // Apply filtering
       let filteredSensors = [...extendedSensors];
       const sensorType = urlParams.get('sensorType');
@@ -170,7 +176,7 @@ export const mockApi = {
       if (sensorType) {
         filteredSensors = filteredSensors.filter(s => s.sensorType === sensorType);
       }
-      if (isOnline !== null) {
+      if (isOnline !== null && isOnline !== '') {
         filteredSensors = filteredSensors.filter(s => s.isOnline === (isOnline === 'true'));
       }
 
@@ -182,7 +188,7 @@ export const mockApi = {
       return {
         data: {
           data: paginatedSensors,
-          meta: { page, perPage, total, totalPages }
+          meta: { page, perPage, total, totalPages, totalSensors, onlineCount, offlineCount, lowBatteryCount }
         }
       };
     }

@@ -208,10 +208,11 @@ export default function SensorsPage() {
     return true;
   });
 
-  const onlineCount = sensors.filter((s: any) => s.isOnline).length;
-  const offlineCount = sensors.filter((s: any) => !s.isOnline).length;
-  const lowBatteryCount = sensors.filter((s: any) => s.batteryLevel && s.batteryLevel < 30).length;
-  const totalSensors = meta.total || sensors.length;
+  // Use global stats from API meta (not calculated from current page)
+  const onlineCount = meta.onlineCount ?? sensors.filter((s: any) => s.isOnline).length;
+  const offlineCount = meta.offlineCount ?? sensors.filter((s: any) => !s.isOnline).length;
+  const lowBatteryCount = meta.lowBatteryCount ?? sensors.filter((s: any) => s.batteryLevel && s.batteryLevel < 30).length;
+  const totalSensors = meta.totalSensors ?? meta.total ?? sensors.length;
 
   // Reset to page 1 when filters change
   const handleFilterChange = (filterType: 'type' | 'status', value: string) => {
