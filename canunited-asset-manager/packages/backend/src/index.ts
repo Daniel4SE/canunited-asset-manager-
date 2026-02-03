@@ -119,7 +119,7 @@ const mockDashboard = {
   summary: {
     totalSites: 3,
     totalAssets: 45,
-    totalSensors: 28,
+    totalSensors: 106,
     totalGateways: 6,
     avgHealthScore: '82.5',
     criticalAssets: 3,
@@ -207,14 +207,40 @@ const alertsStore = new Map([
 ]);
 
 // Sensors data store
-const sensorsStore = new Map([
-  ['s1', { id: 's1', name: 'CL110 Temp/Humidity Sensor 1', sensorType: 'temperature_humidity', vendor: 'schneider', model: 'CL110', protocol: 'zigbee', isOnline: true, batteryLevel: 85, signalStrength: 92, assignedAssetId: 'a1', assignedAssetName: 'SM6-24 MV Switchgear' }],
-  ['s2', { id: 's2', name: 'Easergy PD Sensor', sensorType: 'partial_discharge', vendor: 'schneider', model: 'Easergy PD', protocol: 'modbus_tcp', isOnline: true, batteryLevel: null, signalStrength: 98, assignedAssetId: 'a7', assignedAssetName: 'NXPLUS C Switchgear' }],
-  ['s3', { id: 's3', name: 'HeatTag Thermal Sensor', sensorType: 'heat_tag', vendor: 'schneider', model: 'HeatTag', protocol: 'zigbee', isOnline: true, batteryLevel: 72, signalStrength: 88, assignedAssetId: 'a3', assignedAssetName: 'Trihal Cast Resin Transformer' }],
-  ['s4', { id: 's4', name: 'Bosch CISS Vibration', sensorType: 'vibration', vendor: 'bosch', model: 'CISS Vibration', protocol: 'lorawan', isOnline: true, batteryLevel: 65, signalStrength: 78, assignedAssetId: 'a10', assignedAssetName: 'ABB ACS880 VFD' }],
-  ['s5', { id: 's5', name: 'Generic CT Sensor', sensorType: 'current', vendor: 'generic', model: 'CT-100A', protocol: 'modbus_rtu', isOnline: false, batteryLevel: null, signalStrength: 0, assignedAssetId: 'a8', assignedAssetName: 'Eaton Power Defense' }],
-  ['s6', { id: 's6', name: 'CL110 Temp/Humidity Sensor 2', sensorType: 'temperature_humidity', vendor: 'schneider', model: 'CL110', protocol: 'zigbee', isOnline: true, batteryLevel: 23, signalStrength: 85, assignedAssetId: 'a5', assignedAssetName: 'ABB Resibloc Transformer' }],
-]);
+// Generate 106 sensors for demo mode
+function generateDemoSensors() {
+  const sensorTypes = ['temperature', 'humidity', 'temperature_humidity', 'partial_discharge', 'vibration', 'current', 'voltage', 'power', 'gas', 'heat_tag'];
+  const vendors = ['schneider', 'abb', 'siemens', 'bosch', 'eaton', 'generic'];
+  const protocols = ['zigbee', 'lorawan', 'modbus_rtu', 'modbus_tcp', 'wifi', 'bluetooth'];
+  const assetNames = ['SM6-24 MV Switchgear', 'Masterpact MTZ1 Breaker', 'Trihal Transformer', 'NXPLUS C Switchgear', 'ABB Resibloc Transformer', 'Eaton Power Defense', 'ABB ACS880 VFD', 'Siemens Relay', 'Motor Unit', 'Battery System'];
+
+  const sensors = new Map();
+  for (let i = 1; i <= 106; i++) {
+    const id = `s${i}`;
+    const sensorType = sensorTypes[Math.floor(Math.random() * sensorTypes.length)];
+    const vendor = vendors[Math.floor(Math.random() * vendors.length)];
+    const protocol = protocols[Math.floor(Math.random() * protocols.length)];
+    const isOnline = Math.random() > 0.15;
+    const hasBattery = ['zigbee', 'lorawan', 'bluetooth'].includes(protocol);
+
+    sensors.set(id, {
+      id,
+      name: `${vendor.charAt(0).toUpperCase() + vendor.slice(1)} ${sensorType.replace('_', ' ')} Sensor ${i}`,
+      sensorType,
+      vendor,
+      model: `${vendor.toUpperCase()}-${sensorType.substring(0, 3).toUpperCase()}-${100 + i}`,
+      protocol,
+      isOnline,
+      batteryLevel: hasBattery ? Math.floor(Math.random() * 100) : null,
+      signalStrength: isOnline ? 50 + Math.floor(Math.random() * 50) : 0,
+      assignedAssetId: `a${(i % 10) + 1}`,
+      assignedAssetName: assetNames[i % assetNames.length],
+    });
+  }
+  return sensors;
+}
+
+const sensorsStore = generateDemoSensors();
 
 // Maintenance data store
 const maintenanceStore = new Map([
@@ -618,11 +644,33 @@ app.delete('/api/v1/assets/:id', (req, res) => {
 app.get('/api/v1/sensors', (req, res) => {
   let sensors = Array.from(sensorsStore.values());
 
+  // Apply filters
   if (req.query.assetId) {
     sensors = sensors.filter(s => s.assignedAssetId === req.query.assetId);
   }
+  if (req.query.sensorType) {
+    sensors = sensors.filter(s => s.sensorType === req.query.sensorType);
+  }
+  if (req.query.isOnline !== undefined) {
+    const isOnline = req.query.isOnline === 'true';
+    sensors = sensors.filter(s => s.isOnline === isOnline);
+  }
 
-  res.json({ success: true, data: sensors });
+  const total = sensors.length;
+
+  // Apply pagination
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const perPage = Math.min(100, Math.max(1, parseInt(req.query.perPage as string) || 12));
+  const offset = (page - 1) * perPage;
+  const totalPages = Math.ceil(total / perPage);
+
+  const paginatedSensors = sensors.slice(offset, offset + perPage);
+
+  res.json({
+    success: true,
+    data: paginatedSensors,
+    meta: { page, perPage, total, totalPages }
+  });
 });
 
 app.get('/api/v1/sensors/:id', (req, res) => {

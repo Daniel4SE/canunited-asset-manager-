@@ -22,10 +22,15 @@ const createSensorSchema = z.object({
   assignedAssetId: z.string().uuid().optional()
 });
 
-// Get all sensors
+// Get all sensors with pagination
 sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { siteId, sensorType, vendor, isOnline } = req.query;
+    const { siteId, sensorType, vendor, isOnline, page = '1', perPage = '12' } = req.query;
+
+    // Parse pagination params
+    const pageNum = Math.max(1, parseInt(page as string) || 1);
+    const perPageNum = Math.min(100, Math.max(1, parseInt(perPage as string) || 12));
+    const offset = (pageNum - 1) * perPageNum;
 
     // Use both organization_id and tenant_id for compatibility
     let whereConditions = ['(s.organization_id = $1 OR s.tenant_id = $1)'];
@@ -49,6 +54,17 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
       params.push(isOnline === 'true');
     }
 
+    const whereClause = whereConditions.join(' AND ');
+
+    // Get total count
+    const countResult = await query(
+      `SELECT COUNT(*) as total FROM sensors s WHERE ${whereClause}`,
+      params.slice(0, paramIndex - 1)
+    );
+    const total = parseInt(countResult.rows[0].total);
+    const totalPages = Math.ceil(total / perPageNum);
+
+    // Get paginated data
     const result = await query(
       `SELECT s.id, s.site_id, s.name, s.sensor_type, s.vendor, s.model,
               s.serial_number, s.protocol, s.gateway_id, s.is_online,
@@ -56,9 +72,10 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
               s.asset_id, a.name as assigned_asset_name
        FROM sensors s
        LEFT JOIN assets a ON s.asset_id = a.id
-       WHERE ${whereConditions.join(' AND ')}
-       ORDER BY s.name`,
-      params
+       WHERE ${whereClause}
+       ORDER BY s.name
+       LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
+      [...params, perPageNum, offset]
     );
 
     res.json({
@@ -82,7 +99,13 @@ sensorRoutes.get('/', async (req: Request, res: Response, next: NextFunction) =>
         isOnline: row.is_online,
         lastReadingAt: row.last_reading_at,
         createdAt: row.created_at
-      }))
+      })),
+      meta: {
+        page: pageNum,
+        perPage: perPageNum,
+        total,
+        totalPages
+      }
     });
   } catch (error) {
     next(error);

@@ -154,7 +154,37 @@ export const mockApi = {
       return { data: { data: mockData.mockAlertsSummary } };
     }
     if (matchesPath(endpoints.sensors)) {
-      return { data: { data: mockData.mockSensors } };
+      // Parse pagination params from URL
+      const urlParams = new URLSearchParams(endpoint.split('?')[1] || '');
+      const page = parseInt(urlParams.get('page') || '1');
+      const perPage = parseInt(urlParams.get('perPage') || '12');
+
+      // Generate extended mock sensors for better demo experience
+      const extendedSensors = generateExtendedMockSensors();
+
+      // Apply filtering
+      let filteredSensors = [...extendedSensors];
+      const sensorType = urlParams.get('sensorType');
+      const isOnline = urlParams.get('isOnline');
+
+      if (sensorType) {
+        filteredSensors = filteredSensors.filter(s => s.sensorType === sensorType);
+      }
+      if (isOnline !== null) {
+        filteredSensors = filteredSensors.filter(s => s.isOnline === (isOnline === 'true'));
+      }
+
+      const total = filteredSensors.length;
+      const totalPages = Math.ceil(total / perPage);
+      const start = (page - 1) * perPage;
+      const paginatedSensors = filteredSensors.slice(start, start + perPage);
+
+      return {
+        data: {
+          data: paginatedSensors,
+          meta: { page, perPage, total, totalPages }
+        }
+      };
     }
     if (matchesPath(endpoints.maintenance)) {
       return { data: { data: mockData.mockMaintenance, meta: { page: 1, perPage: 20, total: mockData.mockMaintenance.length, totalPages: 1 } } };
@@ -235,6 +265,39 @@ function generateMockHealthHistory() {
     });
   }
   return data;
+}
+
+// Helper to generate extended mock sensors for pagination demo
+function generateExtendedMockSensors() {
+  const sensorTypes = ['temperature', 'humidity', 'temperature_humidity', 'partial_discharge', 'vibration', 'current', 'voltage', 'power', 'gas', 'heat_tag'];
+  const vendors = ['schneider', 'abb', 'siemens', 'bosch', 'eaton', 'generic'];
+  const protocols = ['zigbee', 'lorawan', 'modbus_rtu', 'modbus_tcp', 'wifi', 'bluetooth'];
+  const sites = ['Singapore Main Plant', 'Malaysia Factory', 'Thailand Facility', 'Indonesia Hub', 'Vietnam Plant'];
+
+  const sensors = [];
+  for (let i = 1; i <= 106; i++) {
+    const sensorType = sensorTypes[Math.floor(Math.random() * sensorTypes.length)];
+    const vendor = vendors[Math.floor(Math.random() * vendors.length)];
+    const protocol = protocols[Math.floor(Math.random() * protocols.length)];
+    const isOnline = Math.random() > 0.15; // 85% online
+    const hasBattery = ['zigbee', 'lorawan', 'bluetooth'].includes(protocol);
+
+    sensors.push({
+      id: `sensor-${i.toString().padStart(3, '0')}`,
+      name: `${vendor.charAt(0).toUpperCase() + vendor.slice(1)} ${sensorType.replace('_', ' ')} Sensor ${i}`,
+      sensorType,
+      vendor,
+      model: `${vendor.toUpperCase()}-${sensorType.substring(0, 3).toUpperCase()}-${100 + i}`,
+      protocol,
+      isOnline,
+      batteryLevel: hasBattery ? Math.floor(Math.random() * 100) : null,
+      signalStrength: isOnline ? 50 + Math.floor(Math.random() * 50) : 0,
+      assignedAssetName: `Asset ${Math.floor(Math.random() * 50) + 1}`,
+      siteName: sites[Math.floor(Math.random() * sites.length)],
+      lastReadingAt: new Date(Date.now() - Math.random() * 86400000 * 7).toISOString(),
+    });
+  }
+  return sensors;
 }
 
 // Helper to generate mock trend data

@@ -21,6 +21,8 @@ import {
   Clock,
   MapPin,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   AlertTriangle,
   CheckCircle2,
   RefreshCw,
@@ -126,12 +128,21 @@ export default function SensorsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const sensorsPerPage = 12;
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['sensors'],
+    queryKey: ['sensors', currentPage, typeFilter, statusFilter],
     queryFn: async () => {
-      const response = await getApi().get(endpoints.sensors);
-      return response.data.data;
+      const params = new URLSearchParams();
+      params.append('page', currentPage.toString());
+      params.append('perPage', sensorsPerPage.toString());
+      if (typeFilter) params.append('sensorType', typeFilter);
+      if (statusFilter === 'online') params.append('isOnline', 'true');
+      if (statusFilter === 'offline') params.append('isOnline', 'false');
+
+      const response = await getApi().get(`${endpoints.sensors}?${params.toString()}`);
+      return response.data;
     },
   });
 
@@ -186,13 +197,13 @@ export default function SensorsPage() {
     },
   });
 
-  const sensors = data || [];
+  // Handle both array format and object format with meta
+  const sensors = Array.isArray(data) ? data : (data?.data || []);
+  const meta = data?.meta || { page: 1, perPage: sensorsPerPage, total: sensors.length, totalPages: 1 };
+  const totalPages = meta.totalPages || Math.ceil(meta.total / sensorsPerPage) || 1;
 
-  // Filter sensors
+  // Filter sensors (already filtered by API, but keep client-side filter for low_battery)
   const filteredSensors = sensors.filter((s: any) => {
-    if (typeFilter && s.sensorType !== typeFilter) return false;
-    if (statusFilter === 'online' && !s.isOnline) return false;
-    if (statusFilter === 'offline' && s.isOnline) return false;
     if (statusFilter === 'low_battery' && (!s.batteryLevel || s.batteryLevel >= 30)) return false;
     return true;
   });
@@ -200,6 +211,14 @@ export default function SensorsPage() {
   const onlineCount = sensors.filter((s: any) => s.isOnline).length;
   const offlineCount = sensors.filter((s: any) => !s.isOnline).length;
   const lowBatteryCount = sensors.filter((s: any) => s.batteryLevel && s.batteryLevel < 30).length;
+  const totalSensors = meta.total || sensors.length;
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (filterType: 'type' | 'status', value: string) => {
+    setCurrentPage(1);
+    if (filterType === 'type') setTypeFilter(value);
+    else setStatusFilter(value);
+  };
 
   const handleSensorClick = (sensor: any) => {
     setSelectedSensor(sensor);
@@ -258,7 +277,7 @@ export default function SensorsPage() {
             <Radio className="w-8 h-8 text-primary-500" />
             {t('sensors.title')}
           </h1>
-          <p className="text-slate-400 mt-1">{sensors.length} sensors deployed</p>
+          <p className="text-slate-400 mt-1">{totalSensors} sensors deployed</p>
         </div>
         <button
           onClick={() => {
@@ -275,7 +294,7 @@ export default function SensorsPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <button
-          onClick={() => setStatusFilter(statusFilter === 'online' ? '' : 'online')}
+          onClick={() => handleFilterChange('status', statusFilter === 'online' ? '' : 'online')}
           className={clsx(
             'card p-4 text-left transition-all',
             statusFilter === 'online' && 'ring-2 ring-green-500'
@@ -292,7 +311,7 @@ export default function SensorsPage() {
           </div>
         </button>
         <button
-          onClick={() => setStatusFilter(statusFilter === 'offline' ? '' : 'offline')}
+          onClick={() => handleFilterChange('status', statusFilter === 'offline' ? '' : 'offline')}
           className={clsx(
             'card p-4 text-left transition-all',
             statusFilter === 'offline' && 'ring-2 ring-red-500'
@@ -309,7 +328,7 @@ export default function SensorsPage() {
           </div>
         </button>
         <button
-          onClick={() => setStatusFilter(statusFilter === 'low_battery' ? '' : 'low_battery')}
+          onClick={() => handleFilterChange('status', statusFilter === 'low_battery' ? '' : 'low_battery')}
           className={clsx(
             'card p-4 text-left transition-all',
             statusFilter === 'low_battery' && 'ring-2 ring-amber-500'
@@ -331,7 +350,7 @@ export default function SensorsPage() {
               <Radio className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-white font-mono">{sensors.length}</p>
+              <p className="text-2xl font-bold text-white font-mono">{totalSensors}</p>
               <p className="text-xs text-slate-400">Total Sensors</p>
             </div>
           </div>
@@ -344,7 +363,7 @@ export default function SensorsPage() {
           <Filter className="w-5 h-5 text-slate-400" />
           <select
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
+            onChange={(e) => handleFilterChange('type', e.target.value)}
             className="input"
           >
             <option value="">All Types</option>
@@ -354,7 +373,7 @@ export default function SensorsPage() {
           </select>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => handleFilterChange('status', e.target.value)}
             className="input"
           >
             <option value="">All Status</option>
@@ -481,19 +500,52 @@ export default function SensorsPage() {
         })}
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className={clsx(
+              'p-2 rounded-lg border transition-all',
+              currentPage === 1
+                ? 'border-slate-700 text-slate-600 cursor-not-allowed'
+                : 'border-slate-600 text-slate-300 hover:bg-slate-800 hover:border-slate-500'
+            )}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="text-slate-400 font-mono">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className={clsx(
+              'p-2 rounded-lg border transition-all',
+              currentPage === totalPages
+                ? 'border-slate-700 text-slate-600 cursor-not-allowed'
+                : 'border-slate-600 text-slate-300 hover:bg-slate-800 hover:border-slate-500'
+            )}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
       {/* Empty State */}
       {filteredSensors.length === 0 && (
         <div className="card p-12 text-center">
           <Radio className="w-12 h-12 text-slate-600 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">
-            {sensors.length === 0 ? 'No Sensors' : 'No Matching Sensors'}
+            {totalSensors === 0 ? 'No Sensors' : 'No Matching Sensors'}
           </h3>
           <p className="text-slate-400 mb-4">
-            {sensors.length === 0
+            {totalSensors === 0
               ? 'Get started by adding your first sensor'
               : 'Try adjusting your filters'}
           </p>
-          {sensors.length === 0 && (
+          {totalSensors === 0 && (
             <button
               onClick={() => setShowAddModal(true)}
               className="btn btn-primary"

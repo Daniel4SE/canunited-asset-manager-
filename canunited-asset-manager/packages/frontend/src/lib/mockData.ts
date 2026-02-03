@@ -12,7 +12,7 @@ export const mockDashboard = {
   summary: {
     totalSites: 3,
     totalAssets: 45,
-    totalSensors: 28,
+    totalSensors: 106,
     totalGateways: 6,
     avgHealthScore: '82.5',
     criticalAssets: 3,
