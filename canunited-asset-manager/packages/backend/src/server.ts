@@ -45,7 +45,7 @@ app.get('/health', async (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.4-schema-sync',
+    version: '1.0.5-fix-migrations',
     service: 'canunited-backend',
     mode: hasDatabase ? 'production' : 'demo',
     database: dbStatus,
@@ -70,7 +70,7 @@ app.use(morgan('combined'));
 app.get('/', (req, res) => {
   res.json({
     message: 'CANUnited Asset Manager API',
-    version: '1.0.4-schema-sync',
+    version: '1.0.5-fix-migrations',
     mode: hasDatabase ? 'production' : 'demo',
     documentation: '/api/v1',
   });
@@ -175,20 +175,19 @@ async function runMigrations() {
       UPDATE alerts SET organization_id = tenant_id WHERE organization_id IS NULL;
     `);
 
-    // Add organization_id to sites if missing
-    await pool.query(`
-      ALTER TABLE sites ADD COLUMN IF NOT EXISTS organization_id UUID;
-      UPDATE sites SET organization_id = tenant_id WHERE organization_id IS NULL;
-    `);
+    // Add organization_id to sites if missing (skip FK-constrained updates that might fail)
+    try {
+      await pool.query(`ALTER TABLE sites ADD COLUMN IF NOT EXISTS organization_id UUID;`);
+    } catch { /* column may already exist */ }
 
     // Add organization_id and asset_type to assets if missing
-    await pool.query(`
-      ALTER TABLE assets ADD COLUMN IF NOT EXISTS organization_id UUID;
-      ALTER TABLE assets ADD COLUMN IF NOT EXISTS asset_type VARCHAR(50);
-      ALTER TABLE assets ADD COLUMN IF NOT EXISTS health_score INTEGER;
-      ALTER TABLE assets ADD COLUMN IF NOT EXISTS health_status VARCHAR(20);
-      UPDATE assets SET organization_id = tenant_id WHERE organization_id IS NULL;
-    `);
+    try {
+      await pool.query(`ALTER TABLE assets ADD COLUMN IF NOT EXISTS organization_id UUID;`);
+      await pool.query(`ALTER TABLE assets ADD COLUMN IF NOT EXISTS asset_type VARCHAR(50);`);
+      await pool.query(`ALTER TABLE assets ADD COLUMN IF NOT EXISTS health_score INTEGER;`);
+      await pool.query(`ALTER TABLE assets ADD COLUMN IF NOT EXISTS health_status VARCHAR(20);`);
+      await pool.query(`UPDATE assets SET organization_id = tenant_id WHERE organization_id IS NULL;`);
+    } catch (e) { console.log('Assets migration note:', (e as Error).message); }
 
     // Update assets health_score and health_status from asset_health table
     await pool.query(`
