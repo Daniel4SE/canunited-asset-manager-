@@ -4,7 +4,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { query } from '../db/connection.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { notFound, badRequest } from '../middleware/errorHandler.js';
-import { UserRole, MaintenanceStatus } from '../types/index.js';
+import { UserRole } from '../types/index.js';
+
+// Maintenance status values
+const MAINTENANCE_STATUS = {
+  SCHEDULED: 'scheduled',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+  OVERDUE: 'overdue'
+} as const;
 import { logAudit, AuditActions } from '../services/audit.service.js';
 
 export const maintenanceRoutes = Router();
@@ -234,7 +243,8 @@ maintenanceRoutes.patch('/:id/status', async (req: Request, res: Response, next:
     const { id } = req.params;
     const { status, notes, actualDurationHours } = req.body;
 
-    if (!Object.values(MaintenanceStatus).includes(status)) {
+    const validStatuses = Object.values(MAINTENANCE_STATUS);
+    if (!validStatuses.includes(status)) {
       badRequest('Invalid status');
     }
 
@@ -249,8 +259,8 @@ maintenanceRoutes.patch('/:id/status', async (req: Request, res: Response, next:
     const params: unknown[] = [status];
     let paramIndex = 2;
 
-    if (status === MaintenanceStatus.COMPLETED) {
-      updates.push(`completed_date = NOW()`);
+    if (status === MAINTENANCE_STATUS.COMPLETED) {
+      updates.push(`actual_end = NOW()`);
     }
     if (notes) {
       updates.push(`notes = $${paramIndex++}`);
@@ -294,14 +304,14 @@ maintenanceRoutes.patch('/:id/status', async (req: Request, res: Response, next:
   }
 });
 
-// Update checklist item
+// Update checklist item (checklist stored in instructions field as JSON)
 maintenanceRoutes.patch('/:id/checklist/:itemId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id, itemId } = req.params;
     const { isCompleted, notes } = req.body;
 
-    // Get current task (note: checklist column may not exist, return empty string as fallback)
-    const taskResult = await query<{ instructions: string }>(
+    // Get current task - checklist is stored in instructions field as JSON
+    const taskResult = await query<{ instructions: string | null }>(
       'SELECT instructions FROM maintenance_tasks WHERE id = $1 AND (organization_id = $2 OR tenant_id = $2)',
       [id, req.user!.organizationId]
     );
@@ -310,8 +320,18 @@ maintenanceRoutes.patch('/:id/checklist/:itemId', async (req: Request, res: Resp
       notFound('Maintenance task');
     }
 
-    const checklist = JSON.parse(taskResult.rows[0].checklist || '[]');
-    const itemIndex = checklist.findIndex((item: { id: string }) => item.id === itemId);
+    // Parse checklist from instructions field (or empty array if not present)
+    let checklist: Array<{ id: string; description: string; isCompleted: boolean; completedAt?: string; completedBy?: string; notes?: string }> = [];
+    try {
+      const instructions = taskResult.rows[0].instructions;
+      if (instructions && instructions.startsWith('[')) {
+        checklist = JSON.parse(instructions);
+      }
+    } catch {
+      checklist = [];
+    }
+
+    const itemIndex = checklist.findIndex((item) => item.id === itemId);
 
     if (itemIndex === -1) {
       notFound('Checklist item');
@@ -320,13 +340,13 @@ maintenanceRoutes.patch('/:id/checklist/:itemId', async (req: Request, res: Resp
     checklist[itemIndex] = {
       ...checklist[itemIndex],
       isCompleted: isCompleted ?? checklist[itemIndex].isCompleted,
-      completedAt: isCompleted ? new Date().toISOString() : null,
-      completedBy: isCompleted ? req.user!.userId : null,
+      completedAt: isCompleted ? new Date().toISOString() : undefined,
+      completedBy: isCompleted ? req.user!.userId : undefined,
       notes: notes ?? checklist[itemIndex].notes
     };
 
     await query(
-      'UPDATE maintenance_tasks SET checklist = $1, updated_at = NOW() WHERE id = $2',
+      'UPDATE maintenance_tasks SET instructions = $1, updated_at = NOW() WHERE id = $2',
       [JSON.stringify(checklist), id]
     );
 
