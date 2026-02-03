@@ -15,9 +15,9 @@ topologyRoutes.get('/site/:siteId', async (req: Request, res: Response, next: Ne
     const { siteId } = req.params;
     const { includeOffline = 'true' } = req.query;
 
-    // Verify site access
+    // Verify site access (check both organization_id and tenant_id for compatibility)
     const siteCheck = await query(
-      'SELECT id FROM sites WHERE id = $1 AND organization_id = $2',
+      'SELECT id FROM sites WHERE id = $1 AND (organization_id = $2 OR tenant_id = $2)',
       [siteId, req.user!.organizationId]
     );
 
@@ -102,8 +102,8 @@ topologyRoutes.post('/connections', authorize(UserRole.ADMIN, UserRole.ASSET_MAN
 
     // Verify both assets exist and belong to same organization
     const assetCheck = await query(
-      `SELECT id, site_id FROM assets 
-       WHERE id IN ($1, $2) AND organization_id = $3`,
+      `SELECT id, site_id FROM assets
+       WHERE id IN ($1, $2) AND (organization_id = $3 OR tenant_id = $3)`,
       [sourceAssetId, targetAssetId, req.user!.organizationId]
     );
 
@@ -143,9 +143,9 @@ topologyRoutes.delete('/connections/:id', authorize(UserRole.ADMIN, UserRole.ASS
     const result = await query(
       `DELETE FROM asset_connections c
        USING assets a
-       WHERE c.id = $1 
-       AND c.source_asset_id = a.id 
-       AND a.organization_id = $2
+       WHERE c.id = $1
+       AND c.source_asset_id = a.id
+       AND (a.organization_id = $2 OR a.tenant_id = $2)
        RETURNING c.id`,
       [id, req.user!.organizationId]
     );

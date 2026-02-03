@@ -45,7 +45,7 @@ app.get('/health', async (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.2-fix-routes',
+    version: '1.0.3-topology-fix',
     service: 'canunited-backend',
     mode: hasDatabase ? 'production' : 'demo',
     database: dbStatus,
@@ -70,7 +70,7 @@ app.use(morgan('combined'));
 app.get('/', (req, res) => {
   res.json({
     message: 'CANUnited Asset Manager API',
-    version: '1.0.2-fix-routes',
+    version: '1.0.3-topology-fix',
     mode: hasDatabase ? 'production' : 'demo',
     documentation: '/api/v1',
   });
@@ -159,9 +159,124 @@ async function runMigrations() {
       UPDATE maintenance_tasks SET organization_id = tenant_id WHERE organization_id IS NULL;
     `);
 
+    // Create asset connections for topology if table is empty
+    await createAssetConnections();
+
     console.log('✅ Migrations completed');
   } catch (error) {
     console.error('⚠️ Migration error (may be ignored):', error);
+  }
+}
+
+// Create logical asset connections for topology visualization
+async function createAssetConnections() {
+  try {
+    // Check if we already have connections
+    const existing = await pool.query('SELECT COUNT(*) FROM asset_connections');
+    if (parseInt(existing.rows[0].count) > 0) {
+      console.log(`📊 Asset connections already exist (${existing.rows[0].count})`);
+      return;
+    }
+
+    console.log('🔗 Creating asset connections for topology...');
+
+    // Get all sites
+    const sitesResult = await pool.query('SELECT id FROM sites');
+
+    for (const site of sitesResult.rows) {
+      // Get assets for this site, ordered by type for logical connections
+      const assetsResult = await pool.query(`
+        SELECT id, name, asset_type
+        FROM assets
+        WHERE site_id = $1
+        ORDER BY
+          CASE asset_type
+            WHEN 'transformer' THEN 1
+            WHEN 'mv_switchgear' THEN 2
+            WHEN 'circuit_breaker' THEN 3
+            WHEN 'relay' THEN 4
+            WHEN 'vfd' THEN 5
+            WHEN 'motor' THEN 6
+            WHEN 'battery_system' THEN 7
+            ELSE 8
+          END,
+          name
+      `, [site.id]);
+
+      const assets = assetsResult.rows;
+      if (assets.length < 2) continue;
+
+      // Group assets by type
+      const byType: Record<string, any[]> = {};
+      for (const asset of assets) {
+        if (!byType[asset.asset_type]) byType[asset.asset_type] = [];
+        byType[asset.asset_type].push(asset);
+      }
+
+      const connections: Array<{source: string, target: string, rel: string, type: string, critical: boolean}> = [];
+
+      const transformers = byType['transformer'] || [];
+      const switchgears = byType['mv_switchgear'] || [];
+      const breakers = byType['circuit_breaker'] || [];
+      const vfds = byType['vfd'] || [];
+      const motors = byType['motor'] || [];
+      const batteries = byType['battery_system'] || [];
+
+      // Transformer -> Switchgear
+      for (let i = 0; i < transformers.length && i < switchgears.length; i++) {
+        connections.push({ source: transformers[i].id, target: switchgears[i].id, rel: 'feeds', type: 'electrical', critical: true });
+      }
+
+      // Switchgear -> Breakers
+      let breakerIdx = 0;
+      for (const sg of switchgears) {
+        for (let i = 0; i < 3 && breakerIdx < breakers.length; i++, breakerIdx++) {
+          connections.push({ source: sg.id, target: breakers[breakerIdx].id, rel: 'feeds', type: 'electrical', critical: i === 0 });
+        }
+      }
+
+      // Breakers -> VFDs/Motors
+      let vfdIdx = 0, motorIdx = 0;
+      for (const breaker of breakers) {
+        if (vfdIdx < vfds.length) {
+          connections.push({ source: breaker.id, target: vfds[vfdIdx++].id, rel: 'feeds', type: 'electrical', critical: false });
+        }
+        if (motorIdx < motors.length) {
+          connections.push({ source: breaker.id, target: motors[motorIdx++].id, rel: 'feeds', type: 'electrical', critical: false });
+        }
+      }
+
+      // VFDs -> Motors
+      for (let i = 0; i < vfds.length && i < motors.length; i++) {
+        connections.push({ source: vfds[i].id, target: motors[i].id, rel: 'controls', type: 'electrical', critical: false });
+      }
+
+      // Batteries -> Switchgears (backup)
+      for (let i = 0; i < batteries.length && i < switchgears.length; i++) {
+        connections.push({ source: batteries[i].id, target: switchgears[i].id, rel: 'backup', type: 'electrical', critical: true });
+      }
+
+      // Fallback: chain assets if no type-based connections
+      if (connections.length === 0) {
+        for (let i = 0; i < assets.length - 1; i++) {
+          connections.push({ source: assets[i].id, target: assets[i + 1].id, rel: 'connected', type: 'electrical', critical: i === 0 });
+        }
+      }
+
+      // Insert connections
+      for (const conn of connections) {
+        await pool.query(`
+          INSERT INTO asset_connections (id, source_asset_id, target_asset_id, relationship, connection_type, is_critical_path)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5)
+          ON CONFLICT (source_asset_id, target_asset_id) DO NOTHING
+        `, [conn.source, conn.target, conn.rel, conn.type, conn.critical]);
+      }
+    }
+
+    const total = await pool.query('SELECT COUNT(*) FROM asset_connections');
+    console.log(`✅ Created ${total.rows[0].count} asset connections`);
+  } catch (error) {
+    console.error('⚠️ Error creating asset connections:', error);
   }
 }
 
